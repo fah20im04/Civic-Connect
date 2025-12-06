@@ -4,8 +4,8 @@ import Navbar from '../Pages/Home/Navbar';
 
 const RootLayout = () => {
   return (
-    <div>
-        <Navbar></Navbar>
+    <div className=''>
+      <Navbar></Navbar>
       <Outlet></Outlet>
     </div>
   );
