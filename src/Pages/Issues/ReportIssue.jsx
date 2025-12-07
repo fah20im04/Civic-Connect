@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import useAxios from "../../Hooks/useAxios";
+import useAxiosSecure from "../../Hooks/useAxiosSecure";
 
 const imageHostKey = import.meta.env.VITE_IMAGE_HOST_KEY;
 
@@ -13,7 +14,7 @@ const ReportIssue = () => {
   const [image, setImage] = useState(null);
   const [location, setLocation] = useState("");
   const navigate = useNavigate();
-  const axiosInstance = useAxios();
+  const axiosSecure = useAxiosSecure();
 
   const uploadImageToImgbb = async (file) => {
     const formData = new FormData();
@@ -50,7 +51,7 @@ const ReportIssue = () => {
     };
 
     try {
-      await axiosInstance.post("/issues", issue);
+      await axiosSecure.post("/issues", issue);
       navigate("/my-issues");
     } catch (error) {
       console.error(error);
@@ -95,6 +96,7 @@ const ReportIssue = () => {
           <option value="Water Leakage">Water Leakage</option>
           <option value="Garbage Overflow">Garbage Overflow</option>
           <option value="Damaged Footpath">Damaged Footpath</option>
+          <option value="other">Other</option>
         </select>
 
         <input
