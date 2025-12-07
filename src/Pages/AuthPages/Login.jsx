@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../../Hooks/useAuth";
+import Test from "../Home/Test";
 
 const Login = () => {
   const {
@@ -94,7 +95,7 @@ const Login = () => {
         </form>
 
         <p className="mt-4 text-center">
-          Don’t have an account?{" "}
+          Don't have an account?{" "}
           <Link
             to="/register"
             state={location.state}
@@ -103,6 +104,7 @@ const Login = () => {
             Register
           </Link>
         </p>
+        <Test></Test>
       </div>
     </div>
   );

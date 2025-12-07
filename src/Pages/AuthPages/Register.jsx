@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 import logo from "../../assets/logo.png";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
+import Test from "../Home/Test";
 
 const Register = () => {
   const { registerUser, updateUserProfile } = useContext(AuthContext);
@@ -30,7 +31,7 @@ const Register = () => {
     const profileImg = data.photo[0];
 
     registerUser(data.email, data.password)
-      .then(() => {
+      .then(async () => {
         const formData = new FormData();
         formData.append("image", profileImg);
 
@@ -38,39 +39,36 @@ const Register = () => {
           import.meta.env.VITE_IMAGE_HOST_KEY
         }`;
 
-        axios.post(image_API_URL, formData).then((res) => {
-          const photoURL = res.data.data.url;
+        const imgUpload = await axios.post(image_API_URL, formData);
+        const photoURL = imgUpload.data.data.url;
 
-          // user creation on db
-          const userInfo = {
-            email: data.email,
-            displayName: data.name,
-            photoURL: photoURL,
-          };
+        const userProfile = {
+          displayName: data.name,
+          photoURL,
+        };
 
-          axiosSecure.post("/users", userInfo).then((res) => {
-            if (res.data.insertedId) {
-              // also fixed typo: 'inertedId' → 'insertedId'
-              console.log("user created in the database");
-            }
-          });
+        await updateUserProfile(userProfile);
 
-          const userProfile = {
-            displayName: data.name,
-            photoURL: photoURL,
-          };
+        console.log("User profile updated");
 
-          updateUserProfile(userProfile)
-            .then(() => {
-              console.log("user profile updated done");
-              navigate(location.state || "/");
-            })
-            .catch((error) => console.log(error));
-        });
+        
+        const auth = getAuth();
+        await auth.currentUser.getIdToken(true);
+
+      
+        const userInfo = {
+          email: data.email,
+          displayName: data.name,
+          photoURL,
+        };
+
+        const res = await axiosSecure.post("/users", userInfo);
+
+        console.log("Saved in DB:", res.data);
+
+        navigate(location.state || "/");
       })
-      .catch((error) => {
-        console.log(error);
-      });
+      .catch((err) => console.log(err));
   };
 
   return (
@@ -121,11 +119,11 @@ const Register = () => {
                   minLength: 6,
                   pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$/,
                 })}
-                className="input input-bordered w-full pr-10" 
+                className="input input-bordered w-full pr-10"
                 placeholder="Password"
               />
               <span
-                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-xl text-gray-500 z-10" 
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-xl text-gray-500 z-10"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
@@ -177,7 +175,9 @@ const Register = () => {
           className="w-full max-w-md object-contain"
         />
       </div>
+      
     </div>
+    
   );
 };
 
