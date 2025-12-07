@@ -3,6 +3,8 @@ import RootLayout from "../Layouts/RootLayout";
 import Home from "../Pages/Home/Home";
 import Login from "../Pages/AuthPages/Login";
 import Register from "../Pages/AuthPages/Register";
+import ReportIssue from "../Pages/Issues/ReportIssue";
+import MyIssues from "../Pages/Issues/MyIssues";
 
 const router = createBrowserRouter([
   {
@@ -20,6 +22,14 @@ const router = createBrowserRouter([
         {
             path:'/register',
             element: <Register></Register>
+        },
+        {
+          path:'/reportIssue',
+          element:<ReportIssue></ReportIssue>
+        },
+        {
+          path: "/my-issues",
+          element: <MyIssues></MyIssues>
         }
     ]
   },

@@ -3,6 +3,7 @@ import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
+import { Link } from "react-router";
 
 export default function Banner() {
   const slides = [
@@ -59,9 +60,9 @@ export default function Banner() {
                 <h1 className="text-5xl font-bold mb-4">{slide.title}</h1>
                 <p className="text-lg mb-6">{slide.subtitle}</p>
 
-                <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg">
+                <Link to="/reportIssue" className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg">
                   Report Issue Now
-                </button>
+                </Link>
               </div>
             </div>
           </SwiperSlide>
