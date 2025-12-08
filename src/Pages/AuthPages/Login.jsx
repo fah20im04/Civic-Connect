@@ -4,6 +4,7 @@ import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../../Hooks/useAuth";
 import Test from "../Home/Test";
+import SocialLogin from "./SocialLogin";
 
 const Login = () => {
   const {
@@ -93,6 +94,7 @@ const Login = () => {
             Login
           </button>
         </form>
+        <SocialLogin></SocialLogin>
 
         <p className="mt-4 text-center">
           Don't have an account?{" "}

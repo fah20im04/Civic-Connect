@@ -13,6 +13,7 @@ const Navbar = () => {
     logOut();
     setProfileDropdownOpen(false);
   };
+  console.log("user is", user);
 
   return (
     <nav className=" bg-green-200 shadow-md fixed w-full z-50">
@@ -45,7 +46,7 @@ const Navbar = () => {
               to="/my-issues"
               className="text-neutral-900 hover:text-primary font-medium"
             >
-             My Issues
+              My Issues
             </Link>
 
             <Link
@@ -70,7 +71,7 @@ const Navbar = () => {
                   className="flex items-center space-x-2 focus:outline-none"
                 >
                   <img
-                    src={user.photoURL}
+                    src={user?.photoURL || "https://i.ibb.co/ZmFHZDM/user.png"}
                     alt="Profile"
                     className="h-10 w-10 rounded-full border border-neutral-900"
                   />
