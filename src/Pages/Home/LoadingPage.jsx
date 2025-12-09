@@ -2,7 +2,7 @@ import React from "react";
 
 const LoadingPage = () => {
   return (
-    <div className="h-screen flex flex-col justify-center items-center bg-gray-100 text-center relative overflow-hidden">
+    <div className="h-screen flex py-22 flex-col justify-center items-center bg-gray-100 text-center relative overflow-hidden">
       {/* Floating Leaves Animation */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="animate-bounce absolute top-10 left-1/4 text-green-500 text-4xl">

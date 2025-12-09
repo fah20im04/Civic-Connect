@@ -13,7 +13,7 @@ const Navbar = () => {
     logOut();
     setProfileDropdownOpen(false);
   };
-  console.log("user is", user);
+  // console.log("user is", user);
 
   return (
     <nav className=" bg-green-200 shadow-md fixed w-full z-50">
@@ -88,6 +88,12 @@ const Navbar = () => {
                       className="block px-4 py-2 text-neutral-900 hover:bg-neutral-200"
                     >
                       Dashboard
+                    </Link>
+                    <Link
+                      to="/profile"
+                      className="block px-4 py-2 text-neutral-900 hover:bg-neutral-200"
+                    >
+                      My Profile
                     </Link>
 
                     <button
@@ -180,6 +186,12 @@ const Navbar = () => {
                 className="block px-4 py-2 hover:bg-neutral-200"
               >
                 Dashboard
+              </Link>
+              <Link
+                to="/profile"
+                className="block px-4 py-2 hover:bg-neutral-200"
+              >
+                My Profile
               </Link>
 
               <button

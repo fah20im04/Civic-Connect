@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import useAxiosSecure from "../../Hooks/useAxiosSecure"; 
-import LoadingPage from "../Home/LoadingPage"; 
-import { AuthContext } from "../../Contexts/AuthContext"; 
+import useAxiosSecure from "../../Hooks/useAxiosSecure";
+import LoadingPage from "../Home/LoadingPage";
+import { AuthContext } from "../../Contexts/AuthContext";
+import Timeline from "./Timeline";
 
 const IssueDetails = () => {
   const { id } = useParams();
@@ -15,7 +16,6 @@ const IssueDetails = () => {
   const [boosting, setBoosting] = useState(false);
 
   useEffect(() => {
-
     const fetchIssue = async () => {
       try {
         const res = await axiosSecure.get(`/issues/${id}`);
@@ -26,7 +26,6 @@ const IssueDetails = () => {
         setLoading(false);
       }
     };
-
     fetchIssue();
   }, [id, user]);
 
@@ -43,39 +42,27 @@ const IssueDetails = () => {
     }
   };
 
-  const handleBoost = async () => {
-    if (boosting) return;
-    setBoosting(true);
-
-    
-    const confirmPayment = window.confirm(
-      "Pay 100tk to boost this issue priority?"
-    );
-
-    if (!confirmPayment) {
-      setBoosting(false);
-      return;
-    }
-
-    try {
-      const res = await axiosSecure.patch(`/issues/boost/${id}`); 
-      setIssue(res.data); 
-      alert("Issue boosted successfully");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to boost issue");
-    } finally {
-      setBoosting(false);
-    }
-  };
-
   if (loading) return <LoadingPage />;
   if (!issue)
     return <p className="py-20 text-center text-red-500">Issue not found.</p>;
 
   const isOwner = user && user.email === issue.userEmail;
   const canEdit = isOwner && issue.status === "Pending";
-  const canBoost = !isOwner && issue.priority !== "High";
+  const canBoost = isOwner && issue.priority !== "High";
+
+  // Status color logic
+  const statusColor = {
+    Pending: "bg-yellow-500",
+    "In-Progress": "bg-blue-500",
+    Resolved: "bg-green-600",
+    Closed: "bg-gray-700",
+  }[issue.status];
+
+  const priorityColor = {
+    Normal: "bg-gray-500",
+    High: "bg-red-600",
+    Critical: "bg-red-700",
+  }[issue.priority];
 
   return (
     <div className="max-w-5xl py-22 mx-auto px-4">
@@ -98,22 +85,12 @@ const IssueDetails = () => {
           <h1 className="text-3xl font-bold">{issue.title}</h1>
           <div className="flex gap-2 flex-wrap">
             <span
-              className={`px-4 py-1 rounded-full text-white font-semibold ${
-                issue.status === "Pending"
-                  ? "bg-yellow-500"
-                  : issue.status === "In-Progress"
-                  ? "bg-blue-500"
-                  : issue.status === "Resolved"
-                  ? "bg-green-600"
-                  : "bg-gray-700"
-              }`}
+              className={`px-4 py-1 rounded-full text-white font-semibold ${statusColor}`}
             >
               {issue.status}
             </span>
             <span
-              className={`px-4 py-1 rounded-full text-white font-semibold ${
-                issue.priority === "High" ? "bg-red-600" : "bg-gray-500"
-              }`}
+              className={`px-4 py-1 rounded-full text-white font-semibold ${priorityColor}`}
             >
               {issue.priority} Priority
             </span>
@@ -134,7 +111,9 @@ const IssueDetails = () => {
           </p>
           <p className="font-semibold">
             <span className="font-bold">Last Updated:</span>{" "}
-            {new Date(issue.updatedAt).toLocaleString()}
+            {issue.updatedAt
+              ? new Date(issue.updatedAt).toLocaleString()
+              : "Not updated yet"}
           </p>
           {issue.assignedStaff && (
             <p className="font-semibold">
@@ -170,14 +149,18 @@ const IssueDetails = () => {
           )}
           {canBoost && (
             <Link
-            to={`/boost-payment/${id}`}
+              to={`/boost-payment/${id}`}
               className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-              onClick={handleBoost}
-              disabled={boosting}
             >
-              {boosting ? "Boosting..." : "Boost Priority (100tk)"}
+              Boost Priority
             </Link>
           )}
+        </div>
+
+        {/* Timeline */}
+        <div className="mt-6">
+          <h2 className="text-xl font-bold mb-2">Issue Timeline</h2>
+          <Timeline timeline={issue.timeline} />
         </div>
       </div>
     </div>

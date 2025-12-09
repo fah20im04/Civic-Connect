@@ -1,35 +1,39 @@
 import axios from "axios";
-import { getAuth } from "firebase/auth";
 
 const useAxiosSecure = () => {
-  const axiosSecure = axios.create({
-    baseURL: "http://localhost:3000",
+  // Create an Axios instance with your backend base URL
+  const instance = axios.create({
+    baseURL: "http://localhost:3000", // your backend URL
   });
 
-  axiosSecure.interceptors.request.use(async (config) => {
-    // console.log("----- Interceptor Triggered -----");
-    const auth = getAuth();
-    const user = auth.currentUser;
-
-    // console.log("Current User:", user);
-
-    if (user) {
-      const token = await user.getIdToken(true);
-      // console.log("Token in interceptor:", token);
-
-      config.headers.Authorization = `Bearer ${token}`;
-      // console.log(config.headers.Authorization = `Bearer ${token}`);
-    } else {
-      // console.log("NO USER — NO TOKEN ADDED");
+  // Optional: add interceptors
+  instance.interceptors.request.use(
+    (config) => {
+      // Add token if you have one (for now can skip)
+      // config.headers.Authorization = `Bearer ${token}`;
+      console.log("Axios request config:", config);
+      return config;
+    },
+    (error) => {
+      console.error("Axios request error:", error);
+      return Promise.reject(error);
     }
+  );
 
-    // console.log("FINAL HEADERS SENT:", config.headers);
-    // console.log("---------------------------------");
+  instance.interceptors.response.use(
+    (response) => {
+      console.log("Axios response:", response);
+      return response;
+    },
+    (error) => {
+      console.error("Axios response error:", error);
+      return Promise.reject(error);
+    }
+  );
+  //console.log("AxiosSecure instance:", instance);
 
-    return config;
-  });
+  return instance; 
 
-  return axiosSecure;
 };
 
 export default useAxiosSecure;

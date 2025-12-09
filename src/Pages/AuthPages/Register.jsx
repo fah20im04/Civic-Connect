@@ -10,6 +10,7 @@ import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import Test from "../Home/Test";
 import SocialLogin from "./SocialLogin";
+import { getAuth } from "firebase/auth";
 
 const Register = () => {
   const { registerUser, updateUserProfile } = useContext(AuthContext);
@@ -24,52 +25,68 @@ const Register = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const axiosSecure = useAxiosSecure();
-  const imageHostKey = import.meta.env.VITE_IMGBB_KEY;
+  const imageHostKey = import.meta.env.VITE_IMAGE_HOST_KEY;
 
-  const handleRegistration = (data) => {
-    console.log(data);
+  const handleRegistration = async (data) => {
+    try {
+      console.log("Registration data:", data);
 
-    const profileImg = data.photo[0];
+      const profileImg = data.photo[0];
 
-    registerUser(data.email, data.password)
-      .then(async () => {
-        const formData = new FormData();
-        formData.append("image", profileImg);
+    
+      await registerUser(data.email, data.password);
 
-        const image_API_URL = `https://api.imgbb.com/1/upload?expiration=600&key=${
-          import.meta.env.VITE_IMAGE_HOST_KEY
-        }`;
+    
+      const formData = new FormData();
+      formData.append("image", profileImg);
 
-        const imgUpload = await axios.post(image_API_URL, formData);
-        const photoURL = imgUpload.data.data.url;
-
-        const userProfile = {
-          displayName: data.name,
-          photoURL,
-        };
-
-        await updateUserProfile(userProfile);
-
-        console.log("User profile updated");
-
-        
-        const auth = getAuth();
-        await auth.currentUser.getIdToken(true);
+      const image_API_URL = `https://api.imgbb.com/1/upload?expiration=600&key=${imageHostKey}`;
+      const imgUpload = await axios.post(image_API_URL, formData);
+      const photoURL = imgUpload.data.data.url;
+      console.log("Image uploaded:", photoURL);
 
       
-        const userInfo = {
-          email: data.email,
-          displayName: data.name,
-          photoURL,
-        };
+      await updateUserProfile({
+        displayName: data.name,
+        photoURL,
+      });
+      console.log("Firebase profile updated");
 
-        const res = await axiosSecure.post("/users", userInfo);
+      
+      const auth = getAuth();
+      const idToken = await auth.currentUser.getIdToken(true);
 
-        console.log("Saved in DB:", res.data);
+    
+      const userInfo = {
+        email: data.email,
+        displayName: data.name,
+        photoURL,
+        createdAt: new Date(),
+      };
 
-        navigate(location.state || "/");
-      })
-      .catch((err) => console.log(err));
+      const res = await axios.post("http://localhost:3000/users", userInfo, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("Saved in DB:", res.data);
+
+      Swal.fire({
+        icon: "success",
+        title: "Registration successful",
+        text: "Welcome to CivicConnect!",
+      });
+
+      navigate(location.state || "/");
+    } catch (err) {
+      console.error("Registration error:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Registration failed",
+        text: err.response?.data?.message || err.message,
+      });
+    }
   };
 
   return (
@@ -177,9 +194,7 @@ const Register = () => {
           className="w-full max-w-md object-contain"
         />
       </div>
-      
     </div>
-    
   );
 };
 

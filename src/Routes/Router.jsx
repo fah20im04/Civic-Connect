@@ -11,71 +11,58 @@ import AllIssues from "../Pages/Issues/AllIssues";
 import BoostPayment from "../Pages/Payment/BoostPayment";
 import BoostSuccess from "../Pages/Payment/BoostSuccess";
 import BoostCancel from "../Pages/Payment/BoostCancel";
+import Profile from "../Pages/Home/Profile";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    Component: RootLayout,
+    element: <RootLayout />, 
     children: [
-      {
-        index: true,
-        element: <Home></Home>,
-      },
-      {
-        path: "/login",
-        element: <Login></Login>,
-      },
-      {
-        path: "/register",
-        element: <Register></Register>,
-      },
-      {
-        path: "/reportIssue",
-        element: <ReportIssue></ReportIssue>,
-      },
-      {
-        path: "/all-issues",
-        element: <AllIssues></AllIssues>,
-      },
+      { index: true, element: <Home /> },
+
+      { path: "/login", element: <Login /> },
+      { path: "/register", element: <Register /> },
+      {path:'/profile',element:<PrivateRoute><Profile/></PrivateRoute>},
+
+      { path: "/reportIssue", element: <ReportIssue /> },
+
+      { path: "/all-issues", element: <AllIssues /> },
+
       {
         path: "/my-issues",
         element: (
           <PrivateRoute>
-            <MyIssues></MyIssues>,
+            <MyIssues />
           </PrivateRoute>
         ),
       },
+
       {
         path: "/viewDetails/:id",
         element: (
           <PrivateRoute>
-            <IssueDetails></IssueDetails>
+            <IssueDetails />
           </PrivateRoute>
         ),
       },
+
       {
         path: "/boost-payment/:issueId",
         element: (
           <PrivateRoute>
-            <BoostPayment></BoostPayment>
+            <BoostPayment />
           </PrivateRoute>
         ),
       },
+
       {
         path: "/boost-success",
-        element: (
-          <PrivateRoute>
-            <BoostSuccess />
-          </PrivateRoute>
-        ),
+        element: <BoostSuccess />,
       },
+
       {
         path: "/boost-cancel",
-        element: (
-          <PrivateRoute>
-            <BoostCancel></BoostCancel>
-          </PrivateRoute>
-        ),
+        element: <BoostCancel />,
       },
     ],
   },
