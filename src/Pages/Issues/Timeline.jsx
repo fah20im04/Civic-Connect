@@ -15,9 +15,8 @@ const statusColor = (status) => {
   }
 };
 
-const Timeline = ({ items }) => {
-  // Sort descending (latest first)
-  const sorted = [...(items || [])].sort(
+const Timeline = ({ timeline }) => {
+  const sorted = [...(timeline || [])].sort(
     (a, b) => new Date(b.date) - new Date(a.date)
   );
 
@@ -39,7 +38,7 @@ const Timeline = ({ items }) => {
                       it.status
                     )}`}
                   >
-                    {it.status || "Update"}
+                    {it.status || 'update'}
                   </span>
                   <span className="text-sm text-gray-600">{it.message}</span>
                 </div>

@@ -12,22 +12,41 @@ import BoostPayment from "../Pages/Payment/BoostPayment";
 import BoostSuccess from "../Pages/Payment/BoostSuccess";
 import BoostCancel from "../Pages/Payment/BoostCancel";
 import Profile from "../Pages/Home/Profile";
+import SubscribeSuccess from "../Pages/Home/Subscribe/SubscribeSuccess";
+import SubscribeCancel from "../Pages/Home/Subscribe/SubscribeCancel";
+
+// Dashboard imports
+import DashboardLayout from "../Layouts/DashboardLayout"; 
+import AdminDashboard from "../Layouts/DashboardComponent/AdminDashboard"; 
+import StaffDashboard from "../Layouts/DashboardComponent/StaffDashboard"; 
+import CitizenDashboard from "../Layouts/DashboardComponent/CitizenDashboard"; 
+import RoleRoute from "./RoleRoute";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <RootLayout />, 
+    element: <RootLayout />,
     children: [
       { index: true, element: <Home /> },
-
       { path: "/login", element: <Login /> },
       { path: "/register", element: <Register /> },
-      {path:'/profile',element:<PrivateRoute><Profile/></PrivateRoute>},
-
-      { path: "/reportIssue", element: <ReportIssue /> },
-
+      {
+        path: "/profile",
+        element: (
+          <PrivateRoute>
+            <Profile />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/reportIssue",
+        element: (
+          <PrivateRoute>
+            <ReportIssue />
+          </PrivateRoute>
+        ),
+      },
       { path: "/all-issues", element: <AllIssues /> },
-
       {
         path: "/my-issues",
         element: (
@@ -36,7 +55,6 @@ const router = createBrowserRouter([
           </PrivateRoute>
         ),
       },
-
       {
         path: "/viewDetails/:id",
         element: (
@@ -45,7 +63,6 @@ const router = createBrowserRouter([
           </PrivateRoute>
         ),
       },
-
       {
         path: "/boost-payment/:issueId",
         element: (
@@ -54,15 +71,47 @@ const router = createBrowserRouter([
           </PrivateRoute>
         ),
       },
+      { path: "/boost-success", element: <BoostSuccess /> },
+      { path: "/boost-cancel", element: <BoostCancel /> },
+      { path: "/subscribe-success", element: <SubscribeSuccess /> },
+      { path: "/subscribe-cancel", element: <SubscribeCancel /> },
 
+      // -------------------------
+      // Dashboard Routes
+      // -------------------------
       {
-        path: "/boost-success",
-        element: <BoostSuccess />,
-      },
-
-      {
-        path: "/boost-cancel",
-        element: <BoostCancel />,
+        path: "/dashboard",
+        element: (
+          <PrivateRoute>
+            <DashboardLayout />
+          </PrivateRoute>
+        ),
+        children: [
+          {
+            index: true,
+            element: (
+              <RoleRoute role="admin">
+                <AdminDashboard />
+              </RoleRoute>
+            ),
+          },
+          {
+            path: "staff",
+            element: (
+              <RoleRoute role="staff">
+                <StaffDashboard />
+              </RoleRoute>
+            ),
+          },
+          {
+            path: "citizen",
+            element: (
+              <RoleRoute role="citizen">
+                <CitizenDashboard />
+              </RoleRoute>
+            ),
+          },
+        ],
       },
     ],
   },

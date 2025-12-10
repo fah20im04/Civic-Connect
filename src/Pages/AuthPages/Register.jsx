@@ -64,11 +64,17 @@ const Register = () => {
         createdAt: new Date(),
       };
 
-      const res = await axios.post("http://localhost:3000/users", userInfo, {
+      const res = await axiosSecure.post("/users", userInfo, {
         headers: {
-          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
         },
       });
+
+      // const res = await axios.post("http://localhost:3000/users", userInfo, {
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
       console.log("Saved in DB:", res.data);
 

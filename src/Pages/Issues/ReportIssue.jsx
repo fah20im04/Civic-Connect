@@ -3,9 +3,9 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import useAxios from "../../Hooks/useAxios";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
+import { getAuth } from "firebase/auth";
 
 const imageHostKey = import.meta.env.VITE_IMAGE_HOST_KEY;
-
 
 const ReportIssue = () => {
   const [title, setTitle] = useState("");
@@ -28,7 +28,7 @@ const ReportIssue = () => {
     });
 
     const data = await res.json();
-    return data.data.url; // return hosted image URL
+    return data.data.url;
   };
 
   const handleSubmit = async (e) => {
@@ -36,12 +36,10 @@ const ReportIssue = () => {
 
     let imageUrl = "";
 
-    // Upload image to imgBB first
     if (image) {
       imageUrl = await uploadImageToImgbb(image);
     }
 
-    // Build the issue object
     const issue = {
       title,
       description,
@@ -51,7 +49,16 @@ const ReportIssue = () => {
     };
 
     try {
-      await axiosSecure.post("/issues", issue);
+      const auth = getAuth();
+      const user = auth.currentUser;
+      const token = await user.getIdToken();
+
+      await axiosSecure.post("/issues", issue, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       navigate("/my-issues");
     } catch (error) {
       console.error(error);

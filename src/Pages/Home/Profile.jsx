@@ -15,14 +15,14 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [subscribing, setSubscribing] = useState(false);
-    // console.log(authUser.email)
+  // console.log(authUser.email)
   const [formData, setFormData] = useState({
     displayName: "",
     email: "",
   });
 
   useEffect(() => {
-    if (!authUser?.email) return; 
+    if (!authUser?.email) return;
     const fetchProfile = async () => {
       try {
         console.log("Fetching profile for:", authUser.email);
@@ -64,8 +64,10 @@ const Profile = () => {
   const handleSubscribe = async () => {
     setSubscribing(true);
     try {
-      const res = await axiosSecure.post("/subscribe");
-      
+      const res = await axiosSecure.post("/subscribe", {
+        email: authUser.email,
+      });
+
       window.location.href = res.data.url;
     } catch (err) {
       console.error(err);
@@ -86,50 +88,57 @@ const Profile = () => {
     return <p className="py-20 text-center text-red-500">User not found.</p>;
 
   return (
-    <div className="max-w-3xl mx-auto py-16 px-4">
-      <h1 className="text-3xl font-bold mb-6">My Profile</h1>
+    <div className="max-w-4xl mx-auto py-26 px-4 md:px-0">
+      {/* Header */}
+      <div className="flex flex-col items-center mb-10 text-center">
+        <img
+          src={user.photoURL}
+          alt="Profile"
+          className="w-32 h-32 rounded-full shadow-lg object-cover border-4 border-white"
+        />
+        <h1 className="text-3xl font-bold mt-4">{user.displayName}</h1>
+        <p className="text-gray-500">{user.email}</p>
 
-      {user.isBlocked && (
-        <div className="bg-red-100 text-red-700 p-4 mb-6 rounded">
-          Your account is blocked. Please contact the authorities.
-        </div>
-      )}
+        {/* Premium */}
+        {user.isPremium && (
+          <div className="mt-3 px-4 py-1 rounded-full bg-yellow-400 text-white text-sm font-semibold shadow-md">
+            ⭐ Premium Member
+          </div>
+        )}
 
-      <div className="bg-white shadow-lg rounded-lg p-6 space-y-6">
-        {/* Display Premium Badge */}
-        <div className="flex items-center gap-3">
-          <h2 className="text-xl font-semibold">{user.displayName}</h2>
-          <img src={user.photoURL} alt="" />
+        {/* Blocked Message */}
+        {user.isBlocked && (
+          <div className="mt-4 bg-red-100 text-red-600 px-4 py-2 rounded-lg border border-red-200">
+            Your account is blocked. Contact support.
+          </div>
+        )}
+      </div>
 
-          {user.isPremium && (
-            <span className="px-2 py-1 text-xs bg-yellow-400 text-white font-bold rounded">
-              Premium
-            </span>
-          )}
-        </div>
+      {/* Card */}
+      <div className="bg-white shadow-xl rounded-2xl p-8 border border-gray-100">
+        <h2 className="text-xl font-semibold mb-6">Account Details</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="font-semibold">Name</label>
+            <label className="text-sm text-gray-600 font-medium">Name</label>
             <input
               type="text"
               name="displayName"
               value={formData.displayName}
               onChange={handleChange}
-              className="mt-1 w-full border rounded px-2 py-1"
               disabled={user.isBlocked}
+              className="mt-1 w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="font-semibold">Email</label>
+            <label className="text-sm text-gray-600 font-medium">Email</label>
             <input
               type="email"
               name="email"
               value={formData.email}
-              onChange={handleChange}
-              className="mt-1 w-full border rounded px-2 py-1"
               disabled
+              className="mt-1 w-full px-4 py-2 rounded-lg border border-gray-200 bg-gray-100 cursor-not-allowed"
             />
           </div>
         </div>
@@ -137,34 +146,39 @@ const Profile = () => {
         <button
           onClick={handleUpdate}
           disabled={updating || user.isBlocked}
-          className={`px-4 py-2 rounded text-white ${
-            user.isBlocked ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+          className={`mt-6 w-full py-3 rounded-xl font-semibold text-white transition-all ${
+            user.isBlocked
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700 shadow-md"
           }`}
         >
-          {updating ? "Updating..." : "Update Profile"}
+          {updating ? "Updating..." : "Save Changes"}
         </button>
 
-        {/* Subscribe Section */}
+        {/* Premium Upgrade */}
         {!user.isPremium && !user.isBlocked && (
-          <div className="mt-6">
-            <h3 className="text-lg font-semibold mb-2">Upgrade to Premium</h3>
-            <p className="mb-2">
-              Subscribe for 1000tk to remove issue limits and enjoy premium
-              features.
+          <div className="mt-10 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 p-6 rounded-xl shadow-sm">
+            <h3 className="text-lg font-semibold text-blue-900">
+              Upgrade to Premium ✨
+            </h3>
+            <p className="text-sm text-blue-800 mt-1">
+              Unlock unlimited issue submissions + exclusive features.
             </p>
+
             <button
               onClick={handleSubscribe}
               disabled={subscribing}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              className="mt-4 w-full py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-xl shadow hover:opacity-90 transition-all"
             >
-              {subscribing ? "Processing..." : "Subscribe Now"}
+              {subscribing ? "Processing..." : "Upgrade for 1000৳"}
             </button>
           </div>
         )}
 
+        {/* Already premium */}
         {user.isPremium && (
-          <p className="mt-4 text-green-600 font-semibold">
-            You are a premium user. No limits on issue submission.
+          <p className="mt-6 text-center text-green-600 text-sm font-medium">
+            You are a premium user — enjoy unlimited access! ✔
           </p>
         )}
       </div>
