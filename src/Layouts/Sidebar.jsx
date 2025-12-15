@@ -75,7 +75,7 @@ const Sidebar = () => {
                 </NavLink>
 
                 <NavLink
-                  to="/dashboard/payments"
+                  to="/dashboard/paymentLogs"
                   className="hover:bg-green-300 p-2 font-bold rounded block"
                 >
                   Payment Logs
