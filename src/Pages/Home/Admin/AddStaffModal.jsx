@@ -34,6 +34,7 @@ const AddStaffModal = ({ isOpen, onClose }) => {
     } catch (error) {
       console.error(error);
       Swal.fire("Error", "Failed to add staff", "error");
+
     } finally {
       setLoading(false);
     }
