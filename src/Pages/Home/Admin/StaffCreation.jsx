@@ -1,11 +1,14 @@
 import React, { useState } from "react";
+import { useLoaderData } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import useAxiosSecure from "../../../Hooks/useAxiosSecure"; 
-import LoadingPage from "../LoadingPage"; 
+import useAxiosSecure from "../../../Hooks/useAxiosSecure";
+import LoadingPage from "../LoadingPage";
 import Swal from "sweetalert2";
 import AddStaffModal from "./AddStaffModal";
+
 const StaffCreation = () => {
   const axiosSecure = useAxiosSecure();
+  const loaderData = useLoaderData(); // <-- get regions & districts from loader
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Fetch all staff
@@ -96,7 +99,11 @@ const StaffCreation = () => {
       </div>
 
       {/* Add Staff Modal */}
-      <AddStaffModal isOpen={isAddModalOpen} onClose={closeAddModal} />
+      <AddStaffModal
+        isOpen={isAddModalOpen}
+        onClose={closeAddModal}
+        loaderData={loaderData} // <-- pass loader data
+      />
     </div>
   );
 };
