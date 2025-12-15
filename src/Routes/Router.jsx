@@ -130,6 +130,7 @@ const router = createBrowserRouter([
           {
             path: "staffCreation",
             element: <StaffCreation />,
+            loader: () => fetch("/OurCenters.json").then((res) => res.json()),
           },
           {
             path: "manage_user",
