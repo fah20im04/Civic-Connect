@@ -73,6 +73,12 @@ const Sidebar = () => {
                 >
                   User Management
                 </NavLink>
+                <NavLink
+                  to="/dashboard/staffCreation"
+                  className="hover:bg-green-300 p-2 font-bold rounded block"
+                >
+                  Staff Creation(For Admin)
+                </NavLink>
 
                 <NavLink
                   to="/dashboard/paymentLogs"

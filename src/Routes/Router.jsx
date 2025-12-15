@@ -29,6 +29,7 @@ import DashboardHome from "../Layouts/DashboardComponent/DashboardHome";
 import StaffManageMent from "../Pages/Home/Admin/StaffManageMent";
 import UserManagement from "../Pages/Home/Admin/UserManagement";
 import PatmentLogs from "../Pages/Home/Admin/PatmentLogs";
+import StaffCreation from "../Pages/Home/Admin/StaffCreation";
 
 const router = createBrowserRouter([
   {
@@ -125,6 +126,10 @@ const router = createBrowserRouter([
           {
             path: "paymentLogs",
             element: <PatmentLogs />,
+          },
+          {
+            path: "staffCreation",
+            element: <StaffCreation />,
           },
           {
             path: "manage_user",
