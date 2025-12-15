@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import useAxiosSecure from "../../Hooks/useAxiosSecure"; 
-import useAuth from "../../Hooks/useAuth"; 
+import useAxiosSecure from "../../Hooks/useAxiosSecure";
+import useAuth from "../../Hooks/useAuth";
 import LoadingPage from "../../Pages/Home/LoadingPage";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import StatCard from "../../Pages/Home/Staff/StarCard";
@@ -13,7 +13,7 @@ const StaffDashboard = () => {
     queryKey: ["staff-dashboard", user?.email],
     enabled: !!user?.email,
     queryFn: async () => {
-      const res = await axiosSecure.get(`/dashboard/staff/${user.email}`);
+      const res = await axiosSecure.get(`/staff/${user.email}`);
       return res.data;
     },
   });
@@ -25,7 +25,7 @@ const StaffDashboard = () => {
     { name: "In-Progress", value: data.inProgress || 0 },
     { name: "Working", value: data.working || 0 },
     { name: "Resolved", value: data.resolved || 0 },
-  ];
+  ].filter((item) => item.value > 0);
 
   const COLORS = ["#facc15", "#38bdf8", "#fb7185", "#4ade80"];
 

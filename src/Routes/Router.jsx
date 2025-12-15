@@ -27,6 +27,7 @@ import Coverage from "../Pages/Home/Coverage/Coverage";
 import StaffAssignedIssue from "../Pages/Home/Staff/StaffAssignedIssue";
 import DashboardHome from "../Layouts/DashboardComponent/DashboardHome";
 import StaffManageMent from "../Pages/Home/Admin/StaffManageMent";
+import UserManagement from "../Pages/Home/Admin/UserManagement";
 
 const router = createBrowserRouter([
   {
@@ -119,6 +120,10 @@ const router = createBrowserRouter([
           {
             path: "manage_staff",
             element: <StaffManageMent />,
+          },
+          {
+            path: "manage_user",
+            element: <UserManagement />,
           },
           {
             path: "staffAssignedIssue",

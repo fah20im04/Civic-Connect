@@ -67,6 +67,12 @@ const Sidebar = () => {
                 >
                   Staff Management
                 </NavLink>
+                <NavLink
+                  to="/dashboard/manage_user"
+                  className="hover:bg-green-300 p-2 font-bold rounded block"
+                >
+                  User Management
+                </NavLink>
 
                 <NavLink
                   to="/dashboard/payments"
