@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../../Hooks/useAuth";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import LoadingPage from "../Home/LoadingPage";
+import Swal from "sweetalert2";
 
 const MyIssues = () => {
   const { user } = useAuth();
@@ -22,7 +23,12 @@ const MyIssues = () => {
         setIssues(res.data);
       } catch (err) {
         console.error(err);
-        alert("Failed to fetch issues");
+        Swal.fire({
+        title: "Failed to fetch issues!",
+        text: "Action completed successfully.",
+        icon: "success",
+        confirmButtonText: "OK",
+      });
       } finally {
         setLoading(false);
       }
@@ -37,7 +43,12 @@ const MyIssues = () => {
       setIssues(issues.filter((issue) => issue._id !== id));
     } catch (err) {
       console.error(err);
-      alert("Failed to delete issue");
+      Swal.fire({
+        title: "Failed to delete issues!",
+        text: "Action completed successfully.",
+        icon: "success",
+        confirmButtonText: "OK",
+      });
     }
   };
 

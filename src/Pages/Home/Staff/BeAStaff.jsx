@@ -3,12 +3,13 @@ import { useForm } from "react-hook-form";
 import { useNavigate, useLoaderData } from "react-router-dom";
 import useAxiosSecure from "../../../Hooks/useAxiosSecure";
 import useAuth from "../../../Hooks/useAuth";
+import Swal from "sweetalert2";
 
 const BeAStaff = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const axiosSecure = useAxiosSecure();
-  const loaderData = useLoaderData(); 
+  const loaderData = useLoaderData();
   // const uploadFileToImgbb = async (file) => {
   //   if (!file) return null;
 
@@ -56,11 +57,21 @@ const BeAStaff = () => {
 
       await axiosSecure.post("/staff", application);
 
-      alert("Your application has been submitted successfully!");
+      Swal.fire({
+        title: "Submitted!",
+        text: "Your application has been submitted successfully!",
+        icon: "success",
+        confirmButtonText: "View My Issues",
+      });
       navigate("/");
     } catch (err) {
       console.error(err);
-      alert("Failed to submit application. Please try again.");
+      Swal.fire({
+        title: "Submission Failed",
+        text: "Failed to submit application. Please check your network connection and try again.",
+        icon: "error",
+        confirmButtonText: "Try Again",
+      });
     }
   };
 

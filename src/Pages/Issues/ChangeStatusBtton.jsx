@@ -1,6 +1,7 @@
 // src/Pages/Issue/ChangeStatusButton.jsx
 import React from "react";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
+import Swal from "sweetalert2";
 
 const ChangeStatusButton = ({ issueId, onUpdate }) => {
   const axiosSecure = useAxiosSecure();
@@ -14,11 +15,21 @@ const ChangeStatusButton = ({ issueId, onUpdate }) => {
 
     try {
       await axiosSecure.post(`/issues/${issueId}/status`, { status, note });
-      alert("Status updated");
+      Swal.fire({
+        title: "Status Updated!",
+        text: "Action completed successfully.",
+        icon: "success",
+        confirmButtonText: "OK",
+      });
       onUpdate?.();
     } catch (err) {
       console.error(err);
-      alert("Status update failed");
+      Swal.fire({
+        title: "Status update failed!",
+        text: "Action completed successfully.",
+        icon: "success",
+        confirmButtonText: "OK",
+      });
     }
   };
 

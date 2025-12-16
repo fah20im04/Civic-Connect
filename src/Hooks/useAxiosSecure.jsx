@@ -5,10 +5,10 @@ import { useNavigate } from "react-router-dom";
 import useAuth from "./useAuth";
 
 const axiosSecure = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: "https://assignment-11-server-alpha-nine.vercel.app",
 });
 
-// ✅ REQUEST INTERCEPTOR — ALWAYS ATTACHED
+
 axiosSecure.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
@@ -27,7 +27,7 @@ const useAxiosSecure = () => {
   useEffect(() => {
     const auth = getAuth();
 
-    // 🔥 Sync Firebase token → localStorage
+
     const unsubscribe = onIdTokenChanged(auth, async (user) => {
       if (user) {
         const token = await user.getIdToken(true);
@@ -38,7 +38,7 @@ const useAxiosSecure = () => {
       }
     });
 
-    // 🔥 RESPONSE INTERCEPTOR
+
     const interceptor = axiosSecure.interceptors.response.use(
       (res) => res,
       (error) => {

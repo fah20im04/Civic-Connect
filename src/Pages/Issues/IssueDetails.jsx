@@ -4,6 +4,7 @@ import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import LoadingPage from "../Home/LoadingPage";
 import { AuthContext } from "../../Contexts/AuthContext";
 import Timeline from "./Timeline";
+import Swal from "sweetalert2";
 
 const IssueDetails = () => {
   const { id } = useParams();
@@ -35,11 +36,21 @@ const IssueDetails = () => {
     if (window.confirm("Are you sure you want to delete this issue?")) {
       try {
         await axiosSecure.delete(`/issues/${id}`);
-        alert("Issue deleted successfully");
+        Swal.fire({
+        title: "Issue updated succesfully!",
+        text: "Action completed successfully.",
+        icon: "success",
+        confirmButtonText: "OK",
+      });
         navigate("/my-issues");
       } catch (err) {
         console.error(err);
-        alert("Failed to delete issue");
+        Swal.fire({
+        title: "Issue update failed!",
+        text: "Action completed successfully.",
+        icon: "success",
+        confirmButtonText: "OK",
+      });
       }
     }
   };

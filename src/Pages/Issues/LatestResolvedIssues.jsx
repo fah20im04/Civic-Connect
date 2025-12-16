@@ -14,25 +14,47 @@ const LatestResolvedIssues = () => {
       try {
         setLoading(true);
         const res = await axiosSecure.get("/issues"); // fetch all issues
-        setIssues(res.data);
+
+        // ⭐️ THE FINAL FIX: We now know the issues array is nested under 'issues'
+        const issuesArray = res.data?.issues;
+
+        if (Array.isArray(issuesArray)) {
+          setIssues(issuesArray);
+        } else {
+          console.error(
+            "API response structure unexpected. Setting issues to empty array.",
+            res.data
+          );
+          setIssues([]);
+        }
       } catch (err) {
         console.error("Failed to fetch issues:", err);
+        setIssues([]); // Ensure state is an array on fetch failure
       } finally {
         setLoading(false);
       }
     };
     fetchIssues();
-  }, []);
+  }, [axiosSecure]);
 
   // Filter resolved & sort by createdAt descending
-  const resolvedIssues = issues
+  // Using a safe default ([]) prevents the TypeError, even if issues is temporarily null/undefined
+  const issuesToProcess = Array.isArray(issues) ? issues : [];
+
+  const resolvedIssues = issuesToProcess
     .filter((i) => i.status === "Resolved")
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 6);
 
-  if (loading) return <LoadingPage></LoadingPage>;
+  if (loading) return <LoadingPage />;
+
   if (resolvedIssues.length === 0)
-    return <p className="text-center text-gray-500">No resolved issues yet.</p>;
+    return (
+      <div className="p-6">
+        <h2 className="text-3xl font-bold mb-6">Latest Resolved Issues</h2>
+        <p className="text-center text-gray-500">No resolved issues yet.</p>
+      </div>
+    );
 
   return (
     <div className="p-6 ">
@@ -83,15 +105,15 @@ const LatestResolvedIssues = () => {
 
             {/* Action Button */}
             <div className="flex justify-between">
-              <Link to={`/viewDetails/${issue._id}`}
-                
+              <Link
+                to={`/viewDetails/${issue._id}`}
                 className="mt-3 bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-md transition"
               >
                 View Details
               </Link>
 
               {/* Resolved Badge */}
-              <div className="mt-3 inline-block bg-green-50 text-green-700  font-medium px-3 py-1 rounded-full border border-green-200">
+              <div className="mt-3 inline-block bg-green-50 text-green-700  font-medium px-3 py-1 rounded-full border border-green-200">
                 Issue Resolved
               </div>
             </div>

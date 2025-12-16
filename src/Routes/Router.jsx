@@ -30,6 +30,8 @@ import StaffManageMent from "../Pages/Home/Admin/StaffManageMent";
 import UserManagement from "../Pages/Home/Admin/UserManagement";
 import PatmentLogs from "../Pages/Home/Admin/PatmentLogs";
 import StaffCreation from "../Pages/Home/Admin/StaffCreation";
+import StaffPaymentLog from "../Pages/Home/Coverage/StaffPaymentLog";
+import ErrorPage from "../Pages/Home/ErrorPage";
 
 const router = createBrowserRouter([
   {
@@ -141,6 +143,10 @@ const router = createBrowserRouter([
             element: <StaffAssignedIssue />,
           },
           {
+            path: "staffPayments",
+            element: <StaffPaymentLog />,
+          },
+          {
             path: "citizen",
             element: <CitizenDashboard />,
           },
@@ -152,6 +158,10 @@ const router = createBrowserRouter([
       },
     ],
   },
+  {
+    path:"*",
+    element:<ErrorPage/>
+  }
 ]);
 
 export default router;

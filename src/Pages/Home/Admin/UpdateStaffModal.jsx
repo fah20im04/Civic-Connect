@@ -1,32 +1,48 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import Swal from "sweetalert2";
-import useAxiosSecure from "../../../Hooks/useAxiosSecure";
-// Note: We keep useAuth here IF it's needed to initialize/configure axiosSecure
-// with the Admin's token, but we remove the unused functions (registerUser, logOut).
-import useAuth from "../../../Hooks/useAuth";
+import useAxiosSecure from "../../../Hooks/useAxiosSecure"; 
 
-const AddStaffModal = ({ isOpen, onClose, loaderData }) => {
+const UpdateStaffModal = ({
+  isOpen,
+  onClose,
+  staffData,
+  loaderData,
+  refetch,
+}) => {
   const axiosSecure = useAxiosSecure();
-
-  // Destructure only what you need (user is generally needed if axiosSecure relies on it)
-  const { user } = useAuth() || {};
 
   const {
     register,
     handleSubmit,
+    reset,
     watch,
-    reset, // Added to clear form on success
     formState: { errors },
   } = useForm();
 
-  const selectedRegion = watch("region");
+ 
+  const selectedRegion = watch("region", staffData?.reporterRegion);
 
-  if (!isOpen) return null;
+ 
+  useEffect(() => {
+    if (staffData) {
+      
+      reset({
+        name: staffData.name || "",
+        email: staffData.email || "",
+        phone: staffData.phone || "",
+        photo: staffData.photo || "",
+        
+        region: staffData.region || "",
+        district: staffData.district || "",
+      });
+    }
+  }, [staffData, reset]);
+
+  if (!isOpen || !staffData) return null;
 
   const districtsByRegion = (region) => {
-    if (!region) return [];
-
+    if (!region || !loaderData) return [];
     return [
       ...new Set(
         loaderData
@@ -36,65 +52,56 @@ const AddStaffModal = ({ isOpen, onClose, loaderData }) => {
     ];
   };
 
-  /**
-   * ✅ CORRECTED ONSUBMIT FUNCTION
-   * This sends data directly to the protected /admin/staff route.
-   * This prevents the Admin from being logged out.
-   */
   const onSubmit = async (data) => {
-    const { name, email, password, region, district, phone, photo } = data;
+    const { name, email, phone, photo, region, district } = data;
 
-    // Package the data for the backend route /admin/staff
-    const staffData = {
+   
+    const updatedData = {
       name,
-      email,
-      password, // Send password to server for Firebase Admin SDK
       phone: phone || null,
       photo: photo || null,
       region,
       district,
-
-      // Default Staff fields expected by the backend /staff collection:
-      experience: "0",
-      status: "Accepted",
-      submittedAt: new Date(),
-      // The role: "staff" is set securely on the backend in /admin/staff
     };
 
     try {
-      // 1. Send the request to the secure, dedicated backend endpoint
-      await axiosSecure.post("/admin/staff", staffData);
+    
+      await axiosSecure.patch(`/admin/staff/${staffData._id}`, updatedData);
 
-      // 2. Success: The Admin is still logged in, and the new staff user is created.
-      Swal.fire("Success", "Staff added successfully!", "success");
-      reset();
+      Swal.fire(
+        "Updated!",
+        "Staff information updated successfully!",
+        "success"
+      );
+      refetch(); 
       onClose();
     } catch (err) {
-      console.error("Add staff failed:", err);
-      // Display specific error from the server if available
+      console.error("Update staff failed:", err);
       const errorMessage =
-        err.response?.data?.message ||
-        "Failed to add staff due to a server error.";
+        err.response?.data?.message || "Failed to update staff.";
       Swal.fire("Error", errorMessage, "error");
     }
   };
 
   return (
-    // Backdrop for accessibility
+   
     <div
-      className="fixed inset-0 bg-opacity-50 z-40"
+      className="fixed inset-0 bg-opacity-50 z-40 flex justify-center items-center"
       onClick={onClose}
     >
+      
       <div
-        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-2xl w-96 z-50"
-        onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside modal
+        className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg" 
+        onClick={(e) => e.stopPropagation()} 
       >
-        <h2 className="text-2xl font-bold text-center mb-6">Add New Staff</h2>
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">
+          Update Staff: {staffData.name}
+        </h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Name Input */}
           <input
             type="text"
-            placeholder="Staff Name"
+            placeholder="Name"
             className="input input-bordered w-full"
             {...register("name", { required: true })}
           />
@@ -102,37 +109,22 @@ const AddStaffModal = ({ isOpen, onClose, loaderData }) => {
             <p className="text-red-500 text-sm">Name is required</p>
           )}
 
-          {/* Email Input */}
+          {/* Email Input - Readonly for security since UID is linked to this email */}
           <input
             type="email"
-            placeholder="Staff Email"
-            className="input input-bordered w-full"
+            placeholder="Email (Cannot be changed)"
+            className="input input-bordered w-full bg-gray-100"
             {...register("email", { required: true })}
+            readOnly
           />
-          {errors.email && (
-            <p className="text-red-500 text-sm">Email is required</p>
-          )}
 
           {/* Phone Input */}
           <input
             type="text"
-            placeholder="Phone (Optional)"
+            placeholder="Phone"
             className="input input-bordered w-full"
             {...register("phone")}
           />
-
-          {/* Password Input (for new staff login) */}
-          <input
-            type="password"
-            placeholder="Password (for new staff login)"
-            className="input input-bordered w-full"
-            {...register("password", { required: true, minLength: 6 })}
-          />
-          {errors.password && (
-            <p className="text-red-500 text-sm">
-              Password is required and must be at least 6 characters
-            </p>
-          )}
 
           {/* Photo URL Input */}
           <input
@@ -150,7 +142,7 @@ const AddStaffModal = ({ isOpen, onClose, loaderData }) => {
               {...register("region", { required: true })}
             >
               <option value="">Select Region</option>
-              {[...new Set(loaderData.map((item) => item.region))].map(
+              {[...new Set(loaderData?.map((item) => item.region))].map(
                 (region, idx) => (
                   <option key={idx} value={region}>
                     {region}
@@ -172,6 +164,7 @@ const AddStaffModal = ({ isOpen, onClose, loaderData }) => {
               disabled={!selectedRegion}
             >
               <option value="">Select District</option>
+              {/* Ensure districts update based on the currently selected region */}
               {districtsByRegion(selectedRegion).map((district, idx) => (
                 <option key={idx} value={district}>
                   {district}
@@ -183,12 +176,12 @@ const AddStaffModal = ({ isOpen, onClose, loaderData }) => {
             )}
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex justify-end space-x-2 mt-6">
             <button type="button" onClick={onClose} className="btn btn-outline">
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary">
-              Add Staff
+            <button type="submit" className="btn btn-info">
+              Save Changes
             </button>
           </div>
         </form>
@@ -197,4 +190,4 @@ const AddStaffModal = ({ isOpen, onClose, loaderData }) => {
   );
 };
 
-export default AddStaffModal;
+export default UpdateStaffModal;

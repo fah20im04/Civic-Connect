@@ -5,13 +5,18 @@ import useAxiosSecure from "../../../Hooks/useAxiosSecure";
 import LoadingPage from "../LoadingPage";
 import Swal from "sweetalert2";
 import AddStaffModal from "./AddStaffModal";
+// Import the new Update Staff Modal component
+import UpdateStaffModal from "./UpdateStaffModal";
 
 const StaffCreation = () => {
   const axiosSecure = useAxiosSecure();
-  const loaderData = useLoaderData(); // <-- get regions & districts from loader
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const loaderData = useLoaderData();
 
-  // Fetch all staff
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [staffToUpdate, setStaffToUpdate] = useState(null); 
+
   const {
     data: staffList = [],
     isLoading,
@@ -27,9 +32,18 @@ const StaffCreation = () => {
   const openAddModal = () => setIsAddModalOpen(true);
   const closeAddModal = () => setIsAddModalOpen(false);
 
-  // Delete staff with confirmation
+  const openUpdateModal = (staff) => {
+    setStaffToUpdate(staff);
+    setIsUpdateModalOpen(true);
+  };
+
+  const closeUpdateModal = () => {
+    setIsUpdateModalOpen(false);
+    setStaffToUpdate(null);
+  };
   const deleteStaff = (id) => {
     Swal.fire({
+ 
       title: "Are you sure?",
       text: "You won't be able to revert this!",
       icon: "warning",
@@ -58,6 +72,7 @@ const StaffCreation = () => {
 
       <div className="overflow-x-auto bg-white shadow rounded-lg">
         <table className="table w-full">
+          {/* ... (Table Head) ... */}
           <thead className="bg-gray-100">
             <tr>
               <th>#</th>
@@ -77,7 +92,13 @@ const StaffCreation = () => {
                 <td>{staff.phone}</td>
                 <td>{staff.role}</td>
                 <td>
-                  <button className="btn btn-sm btn-info mr-2">Update</button>
+                  
+                  <button
+                    onClick={() => openUpdateModal(staff)} 
+                    className="btn btn-sm btn-info mr-2"
+                  >
+                    Update
+                  </button>
                   <button
                     onClick={() => deleteStaff(staff._id)}
                     className="btn btn-sm btn-error"
@@ -87,22 +108,26 @@ const StaffCreation = () => {
                 </td>
               </tr>
             ))}
-            {staffList.length === 0 && (
-              <tr>
-                <td colSpan={6} className="text-center p-6 text-gray-500">
-                  No staff found.
-                </td>
-              </tr>
-            )}
+            
           </tbody>
         </table>
       </div>
 
-      {/* Add Staff Modal */}
+     
       <AddStaffModal
         isOpen={isAddModalOpen}
         onClose={closeAddModal}
-        loaderData={loaderData} // <-- pass loader data
+        loaderData={loaderData}
+        refetch={refetch} 
+      />
+
+
+      <UpdateStaffModal
+        isOpen={isUpdateModalOpen}
+        onClose={closeUpdateModal}
+        staffData={staffToUpdate} 
+        loaderData={loaderData}
+        refetch={refetch} 
       />
     </div>
   );

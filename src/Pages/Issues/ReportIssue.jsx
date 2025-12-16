@@ -76,7 +76,12 @@ const ReportIssue = () => {
       navigate("/my-issues");
     } catch (err) {
       console.error(err);
-      alert("Failed to submit issue");
+      Swal.fire({
+        title: "Failed to submit issues!",
+        text: "Action completed successfully.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
     }
   };
 

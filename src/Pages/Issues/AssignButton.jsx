@@ -1,6 +1,6 @@
 // src/Pages/Issue/AssignButton.jsx
 import React from "react";
-import useAxiosSecure from "../../Hooks/useAxiosSecure"; 
+import useAxiosSecure from "../../Hooks/useAxiosSecure";
 
 export const AssignButton = ({ issueId, onUpdate }) => {
   const axiosSecure = useAxiosSecure();
@@ -15,11 +15,20 @@ export const AssignButton = ({ issueId, onUpdate }) => {
         staffEmail,
         staffName,
       });
-      alert("Assigned");
+      Swal.fire({
+        title: "Success!",
+        text: "Action completed successfully.",
+        icon: "success",
+        confirmButtonText: "OK",
+      });
       onUpdate?.();
     } catch (err) {
-      console.error(err);
-      alert("Assignment failed");
+      Swal.fire({
+        title: "Failed!",
+        text: "Action completed successfully.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
     }
   };
 

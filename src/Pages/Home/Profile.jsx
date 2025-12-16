@@ -3,6 +3,7 @@ import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import LoadingPage from "./LoadingPage";
 import { AuthContext } from "../../Contexts/AuthContext";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const Profile = () => {
   const axiosSecure = useAxiosSecure();
@@ -44,11 +45,22 @@ const Profile = () => {
             `/subscribe-success?session_id=${sessionId}`
           );
           setUser((prev) => ({ ...prev, isPremium: true }));
-          alert("Subscription successful! You are now a Premium member.");
+          Swal.fire({
+            title: "Subscription Successful!",
+            text: "You are now a Premium member with unlimited issue reporting.",
+            icon: "success",
+            confirmButtonText: "Great!",
+            timer: 1500,
+            timerProgressBar: true,
+          });
           navigate("/profile", { replace: true });
         } catch (err) {
-          console.error("Confirm subscription error:", err);
-          alert("Subscription confirmation failed. Please try again.");
+          Swal.fire({
+            title: "Subscription Failed",
+            text: "Confirmation failed. Your payment may not have been processed or there was a system error. Please check your payment details and try again.",
+            icon: "error", // Displays a red X icon
+            confirmButtonText: "OK",
+          });
         }
       };
       confirmSubscription();
@@ -61,7 +73,12 @@ const Profile = () => {
 
   const handleUpdate = async () => {
     if (user?.isBlocked) {
-      alert("Your account is blocked. Cannot update profile.");
+      Swal.fire({
+        title: "Account Blocked",
+        text: "Your account is currently blocked by the Administrator. Profile updates are disabled. Please contact the authorities for assistance.",
+        icon: "warning",
+        confirmButtonText: "Understood",
+      });
       return;
     }
 
@@ -71,10 +88,20 @@ const Profile = () => {
         displayName: formData.displayName,
       });
       setUser(res.data);
-      alert("Profile updated successfully");
+      Swal.fire({
+        title: "Success!",
+        text: "Profile updated successfully.",
+        icon: "success",
+        confirmButtonText: "Continue",
+      });
     } catch (err) {
       console.error(err);
-      alert("Failed to update profile");
+      Swal.fire({
+        title: "Update Failed",
+        text: "Failed to update profile due to a system error. Please try again.",
+        icon: "error",
+        confirmButtonText: "Dismiss",
+      });
     } finally {
       setUpdating(false);
     }
@@ -82,7 +109,12 @@ const Profile = () => {
 
   const handleSubscribe = async () => {
     if (user?.isBlocked) {
-      alert("Your account is blocked. Cannot subscribe.");
+      Swal.fire({
+        title: "Account Blocked",
+        text: "Your account is currently blocked by the Administrator. Profile updates are disabled. Please contact the authorities for assistance.",
+        icon: "warning",
+        confirmButtonText: "Understood",
+      });
       return;
     }
 
@@ -90,14 +122,23 @@ const Profile = () => {
     try {
       const res = await axiosSecure.post("/subscribe", {});
       if (!res.data?.url) {
-        console.error("Backend did not return a URL:", res.data);
-        alert("Subscription failed. Invalid server response.");
+        Swal.fire({
+          title: "Subscription Failed",
+          text: "The server returned an invalid response. Please contact support or try again later.",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
         return;
       }
       window.location.href = res.data.url;
     } catch (err) {
       console.error("Subscription failed:", err);
-      alert("Subscription failed. Check the console for details.");
+      Swal.fire({
+        title: "Subscription Failed",
+        text: "The server returned an invalid response. Please contact support or try again later.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
     } finally {
       setSubscribing(false);
     }
