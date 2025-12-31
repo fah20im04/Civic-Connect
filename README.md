@@ -1,16 +1,61 @@
-# React + Vite
+# 🏛️ Civic-Connect
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A MERN Stack civic engagement platform that allows citizens to report local issues and helps authorities manage and resolve them efficiently.
 
-Currently, two official plugins are available:
+🌐 **Live Demo:** https://civic-connect.vercel.app  
+👨‍💻 **Developer:** Fahim Ahmed Ayon
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 📌 Project Overview
+**Civic-Connect** is a full-stack web application designed to improve communication between citizens and local authorities.  
+Users can report civic problems such as road damage, sanitation issues, or public safety concerns, while admins can track, manage, and update the status of reported issues.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+This project focuses on **real-world problem solving**, **clean UI**, and **scalable MERN architecture**.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🚀 Current Use Case
+- Citizens can submit civic complaints online  
+- Authorities/admins can monitor and manage reports  
+- Transparent issue tracking for communities  
+
+---
+
+## 🛠️ Technologies Used
+
+### 🎨 Frontend
+- React.js  
+- Next.js  
+- Tailwind CSS  
+- JavaScript  
+
+### ⚙️ Backend
+- Node.js  
+- Express.js  
+
+### 🗄️ Database
+- MongoDB  
+
+### 🔐 Others
+- JWT / Firebase Authentication  
+- REST API  
+- Git & GitHub  
+
+---
+
+## ✨ Core Features
+- 🧑 User authentication & authorization  
+- 📝 Civic issue reporting system  
+- 📍 Location-based issue tracking  
+- 🛠️ Admin dashboard for issue management  
+- 🔄 Real-time status updates  
+- 📱 Responsive design (mobile & desktop)  
+
+---
+
+## 📷 Screenshot
+
+
+```md
+![Civic-Connect Screenshot](./screenshot.png)
