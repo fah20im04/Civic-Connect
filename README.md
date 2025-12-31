@@ -58,4 +58,4 @@ This project focuses on **real-world problem solving**, **clean UI**, and **scal
 
 
 ```md
-![Civic-Connect Screenshot](./screenshot.png)
+![Civic-Connect Screenshot](./civic-connect.png)
