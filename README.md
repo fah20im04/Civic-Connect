@@ -2,7 +2,7 @@
 
 A MERN Stack civic engagement platform that allows citizens to report local issues and helps authorities manage and resolve them efficiently.
 
-🌐 **Live Demo:** https://civic-connect.vercel.app  
+🌐 **Live Demo:** https://civicconnects-fahim-86f63a.netlify.app/  
 👨‍💻 **Developer:** Fahim Ahmed Ayon
 
 ---
