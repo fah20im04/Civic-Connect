@@ -1,110 +1,137 @@
-import { useState, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import { AuthContext } from "../../Contexts/AuthContext";
+import { Sun, Moon } from "lucide-react";
 
 const Navbar = () => {
+  const [theme, setTheme] = useState(
+    localStorage.getItem("theme") || "civicLight"
+  );
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);
-
   const { user, logOut } = useContext(AuthContext);
+
+  useEffect(() => {
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    const current = localStorage.getItem("theme") || "civicLight";
+    const newTheme = current === "civicLight" ? "civicDark" : "civicLight";
+
+    localStorage.setItem("theme", newTheme);
+
+    // 🚀 Tell RootLayout to reload
+    window.dispatchEvent(new Event("theme-change-reload"));
+  };
 
   const handleLogout = () => {
     logOut();
     setProfileDropdownOpen(false);
+    setMobileMenuOpen(false);
   };
-  // console.log("user is", user);
+
+  // ⚡ manual class switching
+  const navBgClass =
+    theme === "civicLight"
+      ? "bg-white border-gray-200"
+      : "bg-gray-900 border-gray-700";
+  const textClass = theme === "civicLight" ? "text-gray-800" : "text-gray-100";
+  const btnBgClass =
+    theme === "civicLight"
+      ? "bg-blue-600 text-white"
+      : "bg-blue-500 text-gray-100";
+  const hoverBtnClass =
+    theme === "civicLight" ? "hover:bg-blue-500" : "hover:bg-blue-400";
+  const dropdownBgClass =
+    theme === "civicLight"
+      ? "bg-white border-gray-200"
+      : "bg-gray-800 border-gray-700";
 
   return (
-    <nav className=" bg-green-200 shadow-md fixed w-full z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
+    <nav className={`fixed top-0 w-full z-50 border-b shadow-sm ${navBgClass}`}>
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 h-16">
-            <img className="h-16" src={logo} alt="" />
-            <span className="text-2xl font-bold text-primary">
+          <Link to="/" className="flex items-center gap-2">
+            <img className="h-10 w-10 object-contain" src={logo} alt="logo" />
+            <span className={`text-xl font-semibold ${textClass}`}>
               CivicConnect
             </span>
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-6">
-            <Link
-              to="/"
-              className="text-neutral-900 hover:text-primary font-medium"
-            >
+          <div className="hidden md:flex items-center gap-6">
+            <NavLink to="/" textClass={textClass}>
               Home
-            </Link>
-
-            <Link
-              to="/all-issues"
-              className="text-neutral-900 hover:text-primary font-medium"
-            >
+            </NavLink>
+            <NavLink to="/all-issues" textClass={textClass}>
               All Issues
-            </Link>
-            <Link
-              to="/my-issues"
-              className="text-neutral-900 hover:text-primary font-medium"
-            >
+            </NavLink>
+            <NavLink to="/my-issues" textClass={textClass}>
               My Issues
-            </Link>
-
-            <Link
-              to="/coverage"
-              className="text-neutral-900 hover:text-primary font-medium"
-            >
+            </NavLink>
+            <NavLink to="/coverage" textClass={textClass}>
               Coverage
-            </Link>
+            </NavLink>
 
             <Link
               to="/be_a_staff"
-              className="text-neutral-900 btn font-bold text-white btn-secondary hover:text-primary font-medium"
+              className={`px-4 py-2 rounded-xl transition ${btnBgClass} ${hoverBtnClass}`}
             >
               Be a Staff
             </Link>
 
-            {/* If User is Logged In */}
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              className={`p-2 rounded-full transition ${btnBgClass}`}
+            >
+              {theme === "civicLight" ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
+
+            {/* User */}
             {user ? (
               <div className="relative">
                 <button
                   onClick={() => setProfileDropdownOpen(!isProfileDropdownOpen)}
-                  className="flex items-center space-x-2 focus:outline-none"
+                  className="flex items-center focus:outline-none"
                 >
                   <img
                     src={user?.photoURL || "https://i.ibb.co/ZmFHZDM/user.png"}
-                    alt="Profile"
-                    className="h-10 w-10 rounded-full border border-neutral-900"
+                    alt="profile"
+                    className="h-9 w-9 rounded-full border object-cover"
                   />
                 </button>
 
                 {isProfileDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-neutral-100 border rounded-md shadow-lg py-2">
-                    <p className="px-4 py-2 text-neutral-900 font-medium">
-                      {user.displayName}
-                    </p>
-
-                    <Link
-                      to="/dashboard"
-                      className="block px-4 py-2 text-neutral-900 hover:bg-neutral-200"
+                  <div
+                    className={`absolute right-0 mt-3 w-48 rounded-xl shadow-md overflow-hidden border ${dropdownBgClass}`}
+                  >
+                    <div
+                      className="px-4 py-3 border-b"
+                      style={{
+                        borderColor:
+                          theme === "civicLight" ? "#E5E7EB" : "#374151",
+                      }}
                     >
+                      <p className={`text-sm font-medium ${textClass}`}>
+                        {user.displayName}
+                      </p>
+                    </div>
+                    <DropdownLink to="/dashboard" textClass={textClass}>
                       Dashboard
-                    </Link>
-                    <Link
-                      to="/profile"
-                      className="block px-4 py-2 text-neutral-900 hover:bg-neutral-200"
-                    >
+                    </DropdownLink>
+                    <DropdownLink to="/profile" textClass={textClass}>
                       My Profile
-                    </Link>
-                    <Link
-                      to="/be_a_staff"
-                      className="block px-4 py-2 text-neutral-900 hover:bg-neutral-200"
-                    >
+                    </DropdownLink>
+                    <DropdownLink to="/be_a_staff" textClass={textClass}>
                       Be a Staff
-                    </Link>
-
+                    </DropdownLink>
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-neutral-900 hover:bg-neutral-200"
+                      className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-blue-700 transition"
                     >
                       Logout
                     </button>
@@ -112,123 +139,154 @@ const Navbar = () => {
                 )}
               </div>
             ) : (
-              /* If User is NOT Logged In */
               <Link
                 to="/login"
-                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/80"
+                className={`px-4 py-2 rounded-xl transition ${btnBgClass} ${hoverBtnClass}`}
               >
                 Login
               </Link>
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-neutral-900 hover:text-primary focus:outline-none"
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
+            className={textClass + " md:hidden"}
+          >
+            <svg
+              className="h-7 w-7"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <svg
-                className="h-8 w-8"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                {isMobileMenuOpen ? (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                ) : (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                )}
-              </svg>
-            </button>
-          </div>
+              {isMobileMenuOpen ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              )}
+            </svg>
+          </button>
         </div>
       </div>
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-neutral-100 border-t">
-          <Link
-            onClick={() => setMobileMenuOpen(false)}
-            to="/"
-            className="block px-4 py-2 hover:bg-neutral-200"
-          >
+        <div className={`md:hidden border-t ${dropdownBgClass}`}>
+          <MobileLink to="/" textClass={textClass} onClick={setMobileMenuOpen}>
             Home
-          </Link>
-
-          <Link
-            onClick={() => setMobileMenuOpen(false)}
+          </MobileLink>
+          <MobileLink
             to="/all-issues"
-            className="block px-4 py-2 hover:bg-neutral-200"
+            textClass={textClass}
+            onClick={setMobileMenuOpen}
           >
             All Issues
-          </Link>
-          <Link
-            onClick={() => setMobileMenuOpen(false)}
-            to="/coverage"
-            className="block px-4 py-2 hover:bg-neutral-200"
-          >
-            Coverage
-          </Link>
-          <Link
-            onClick={() => setMobileMenuOpen(false)}
+          </MobileLink>
+          <MobileLink
             to="/my-issues"
-            className="block px-4 py-2 hover:bg-neutral-200"
+            textClass={textClass}
+            onClick={setMobileMenuOpen}
           >
             My Issues
-          </Link>
+          </MobileLink>
+          <MobileLink
+            to="/coverage"
+            textClass={textClass}
+            onClick={setMobileMenuOpen}
+          >
+            Coverage
+          </MobileLink>
 
-          {/* User Section in Mobile */}
           {user ? (
-            <div className="border-t mt-2">
-              <p className="px-4 py-2 font-medium">{user.displayName}</p>
-
-              <Link
+            <div
+              className="border-t mt-2"
+              style={{
+                borderColor: theme === "civicLight" ? "#E5E7EB" : "#374151",
+              }}
+            >
+              <p className={`px-4 py-2 text-sm font-medium ${textClass}`}>
+                {user.displayName}
+              </p>
+              <MobileLink
                 to="/dashboard"
-                className="block px-4 py-2 hover:bg-neutral-200"
+                textClass={textClass}
+                onClick={setMobileMenuOpen}
               >
                 Dashboard
-              </Link>
-              <Link
+              </MobileLink>
+              <MobileLink
                 to="/profile"
-                className="block px-4 py-2 hover:bg-neutral-200"
+                textClass={textClass}
+                onClick={setMobileMenuOpen}
               >
                 My Profile
-              </Link>
-              <Link
+              </MobileLink>
+              <MobileLink
                 to="/be_a_staff"
-                className="block px-4 py-2 hover:bg-neutral-200"
+                textClass={textClass}
+                onClick={setMobileMenuOpen}
               >
                 Be a Staff
-              </Link>
-
+              </MobileLink>
               <button
                 onClick={handleLogout}
-                className="block w-full text-left px-4 py-2 hover:bg-neutral-200"
+                className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-blue-700 transition"
               >
                 Logout
               </button>
             </div>
           ) : (
-            <Link to="/login" className="block px-4 py-2 hover:bg-neutral-200">
+            <MobileLink
+              to="/login"
+              textClass={textClass}
+              onClick={setMobileMenuOpen}
+            >
               Login
-            </Link>
+            </MobileLink>
           )}
         </div>
       )}
     </nav>
   );
 };
+
+// Reusable links
+const NavLink = ({ to, children, textClass }) => (
+  <Link
+    to={to}
+    className={`text-sm font-medium transition ${textClass} hover:text-blue-500`}
+  >
+    {children}
+  </Link>
+);
+
+const DropdownLink = ({ to, children, textClass }) => (
+  <Link
+    to={to}
+    className={`block px-4 py-2 text-sm transition ${textClass} hover:bg-blue-700`}
+  >
+    {children}
+  </Link>
+);
+
+const MobileLink = ({ to, children, textClass, onClick }) => (
+  <Link
+    to={to}
+    onClick={() => onClick(false)}
+    className={`block px-4 py-2 text-sm transition ${textClass} hover:bg-blue-700`}
+  >
+    {children}
+  </Link>
+);
 
 export default Navbar;

@@ -1,13 +1,42 @@
-import React from "react";
+import React, { useEffect, useState } from "react"; // Import useEffect and useState
 import { Link } from "react-router-dom";
 
 const ErrorPage = () => {
+  // ============================
+  // THEME STATE & LISTENER
+  // ============================
+  const [theme, setTheme] = useState(
+    localStorage.getItem("theme") || "civicLight"
+  );
+
+  useEffect(() => {
+    const handleThemeChange = () => {
+      const newTheme = localStorage.getItem("theme") || "civicLight";
+      if (newTheme !== theme) setTheme(newTheme);
+    };
+    window.addEventListener("storage", handleThemeChange);
+    return () => window.removeEventListener("storage", handleThemeChange);
+  }, [theme]);
+
+  // ============================
+  // THEME-AWARE CLASS CALCULATION
+  // ============================
+  const isLight = theme === "civicLight";
+  const bgClass = isLight ? "bg-gray-100" : "bg-gray-900";
+  const titleClass = isLight ? "text-red-600" : "text-red-400";
+  const textClass = isLight ? "text-gray-700" : "text-gray-300";
+  const linkTextClass = isLight ? "text-gray-500" : "text-gray-400";
+  const linkHoverClass = isLight ? "hover:text-red-600" : "hover:text-red-400";
+  const buttonBgClass = "bg-red-600 hover:bg-red-700 text-white";
+
   return (
-    <div className="h-screen flex flex-col justify-center items-center bg-gray-100 text-center px-4">
+    <div
+      className={`h-screen flex flex-col justify-center items-center ${bgClass} text-center px-4`}
+    >
       {/* Animated Sad Face */}
       <div className="mb-6 animate-bounce">
         <svg
-          className="w-24 h-24 text-red-600 mx-auto"
+          className={`w-24 h-24 ${titleClass} mx-auto`}
           fill="none"
           stroke="currentColor"
           strokeWidth="1.5"
@@ -25,10 +54,10 @@ const ErrorPage = () => {
       </div>
 
       {/* Error Code */}
-      <h1 className="text-6xl font-extrabold text-red-600 mb-2">404</h1>
+      <h1 className={`text-6xl font-extrabold ${titleClass} mb-2`}>404</h1>
 
       {/* Message */}
-      <p className="text-lg text-gray-700 mb-6 max-w-md">
+      <p className={`text-lg ${textClass} mb-6 max-w-md`}>
         Oops! The page you’re looking for doesn’t exist. Even CivicConnect feels
         sad about broken links.
       </p>
@@ -36,17 +65,17 @@ const ErrorPage = () => {
       {/* Action Button */}
       <Link
         to="/"
-        className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-md shadow-md transition duration-300"
+        className={`${buttonBgClass} font-semibold px-6 py-3 rounded-md shadow-lg transition duration-300`}
       >
         Go Back Home
       </Link>
 
       {/* Footer Note */}
-      <p className="mt-8 text-sm text-gray-500">
+      <p className={`mt-8 text-sm ${linkTextClass}`}>
         Need help?{" "}
-        <a href="/contact" className="underline hover:text-red-600">
+        <Link to="/contact" className={`underline ${linkHoverClass}`}>
           Contact Support
-        </a>
+        </Link>
       </p>
     </div>
   );

@@ -1,76 +1,109 @@
+import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import useAxiosSecure from "../../../Hooks/useAxiosSecure";
 import LoadingPage from "../LoadingPage";
-import Swal from "sweetalert2";
+import IssuesTableSkeleton from "../IssuesTableSkeleton ";
 
 const PatmentLogs = () => {
+  // ============================
+  // THEME STATE & LISTENER
+  // ============================
+  const [theme, setTheme] = useState(
+    localStorage.getItem("theme") || "civicLight"
+  );
+
+  useEffect(() => {
+    const handleThemeChange = () => {
+      const newTheme = localStorage.getItem("theme") || "civicLight";
+      if (newTheme !== theme) setTheme(newTheme);
+    };
+    window.addEventListener("storage", handleThemeChange);
+    return () => window.removeEventListener("storage", handleThemeChange);
+  }, [theme]);
+
+  const isLight = theme === "civicLight";
+  const titleClass = isLight ? "text-gray-900" : "text-gray-100";
+  const textClass = isLight ? "text-gray-700" : "text-gray-300";
+  const tableBg = isLight ? "bg-white" : "bg-gray-900";
+  const tableHeaderBg = isLight ? "bg-gray-100" : "bg-gray-700";
+  const tableRowHover = isLight ? "hover:bg-gray-50" : "hover:bg-gray-800";
+
   const axiosSecure = useAxiosSecure();
 
-  // Fetch payment logs (admin only)
-  const {
-    data: payments = [],
-    isLoading,
-  } = useQuery({
+  // Fetch payment logs
+  const { data: payments = [], isLoading } = useQuery({
     queryKey: ["admin-payments"],
-    queryFn: async () => {
-      const res = await axiosSecure.get("/admin/payments");
-      return res.data;
-    },
+    queryFn: async () => (await axiosSecure.get("/admin/payments")).data,
   });
 
-  if (isLoading) return <LoadingPage />;
+  if (isLoading) return <IssuesTableSkeleton />;
 
   return (
-    <div className="p-6">
-      <h2 className="text-3xl font-bold mb-6">Payment Logs</h2>
+    <div className="p-4 md:p-6">
+      <h2 className={`text-3xl font-bold mb-6 ${titleClass}`}>Payment Logs</h2>
 
-      <div className="overflow-x-auto bg-white shadow rounded-lg">
-        <table className="table w-full">
-          <thead className="bg-gray-100">
-            <tr>
-              <th>#</th>
-              <th>User</th>
-              <th>Email</th>
-              <th>Amount</th>
-              <th>Method</th>
-              <th>Transaction ID</th>
-              <th>Status</th>
-              <th>Date</th>
+      <div className={`overflow-x-auto shadow-lg rounded-xl ${tableBg}`}>
+        <table className="w-full min-w-[700px]">
+          <thead className={tableHeaderBg}>
+            <tr className={titleClass}>
+              {[
+                "#",
+                "User",
+                "Email",
+                "Amount",
+                "Method",
+                "Transaction ID",
+                "Status",
+                "Date",
+              ].map((h) => (
+                <th key={h} className="px-4 py-3 text-left text-sm font-medium">
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
 
-          <tbody>
+          <tbody className={textClass}>
             {payments.map((payment, index) => (
-              <tr key={payment._id}>
-                <td>{index + 1}</td>
+              <tr
+                key={payment._id}
+                className={`${tableRowHover} border-b border-gray-200`}
+              >
+                <td className="px-4 py-2">{index + 1}</td>
 
-                <td>{payment.userName || "N/A"}</td>
-
-                <td>{payment.email}</td>
-
-                <td className="font-semibold">
-                  {payment.amount} tk
+                <td className="px-4 py-2 font-medium">
+                  {payment.userName || "N/A"}
                 </td>
 
-                <td>
-                  <span className="badge badge-outline">
+                <td className="px-4 py-2">{payment.email}</td>
+
+                <td className={`px-4 py-2 font-semibold ${titleClass}`}>
+                  {payment.amount.toLocaleString()} tk
+                </td>
+
+                <td className="px-4 py-2">
+                  <span className="badge badge-outline text-sm">
                     {payment.method || "Online"}
                   </span>
                 </td>
 
-                <td className="text-sm">
+                <td className="px-4 py-2 text-sm break-all">
                   {payment.transactionId}
                 </td>
 
-                <td>
+                <td className="px-4 py-2">
                   {payment.paymentStatus === "paid" ? (
-                    <span className="badge badge-success">Success</span>
+                    <span className="px-3 py-1 text-white text-xs rounded-full font-semibold bg-green-500">
+                      Success
+                    </span>
                   ) : (
-                    <span className="badge badge-error">Failed</span>
+                    <span className="px-3 py-1 text-white text-xs rounded-full font-semibold bg-red-500">
+                      Failed
+                    </span>
                   )}
                 </td>
 
-                <td className="text-sm">
+                <td className="px-4 py-2 text-sm">
                   {new Date(payment.createdAt).toLocaleDateString()}
                 </td>
               </tr>
@@ -79,7 +112,7 @@ const PatmentLogs = () => {
         </table>
 
         {payments.length === 0 && (
-          <p className="text-center p-6 text-gray-500">
+          <p className={`text-center p-6 ${textClass}`}>
             No payment records found.
           </p>
         )}

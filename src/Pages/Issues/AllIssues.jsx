@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 // Import useQuery from TanStack Query
 import { useQuery } from "@tanstack/react-query";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
@@ -7,14 +7,35 @@ import useAuth from "../../Hooks/useAuth";
 import { FaLocationPin } from "react-icons/fa6";
 import { FaVoteYea } from "react-icons/fa";
 import Footer from "../Home/Footer";
+import LoadingPage from "../Home/LoadingPage";
+import IssueCardSkeleton from "../Home/IssueCardSkeleton";
 
 // Define pagination constant and set it up for server-side control
 const ITEMS_PER_PAGE = 9;
 
 const AllIssues = () => {
-  // NOTE: You might need useAxiosPublic if this route is not protected
   const axiosSecure = useAxiosSecure();
   const { user } = useAuth();
+
+  // ============================
+  // THEME STATE & LISTENER (The Fix)
+  // ============================
+  const [theme, setTheme] = useState(
+    localStorage.getItem("theme") || "civicLight"
+  );
+
+  useEffect(() => {
+    const handleThemeChange = () => {
+      const newTheme = localStorage.getItem("theme") || "civicLight";
+      if (newTheme !== theme) {
+        setTheme(newTheme);
+      }
+    };
+    window.addEventListener("storage", handleThemeChange);
+    return () => {
+      window.removeEventListener("storage", handleThemeChange);
+    };
+  }, [theme]);
 
   // 1. State for Filters, Search, and Pagination
   const [category, setCategory] = useState("");
@@ -61,7 +82,6 @@ const AllIssues = () => {
   // ============================
   // PAGINATION HANDLERS
   // ============================
-  // The server now handles which data to return, we only change currentPage
   const handleNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
@@ -88,13 +108,10 @@ const AllIssues = () => {
 
     try {
       await axiosSecure.patch(`/issues/upvote/${id}`);
-      // Instead of manual state manipulation, simply refetch the current page data
       refetch();
-      // Show success message
       Swal.fire("Success!", "Issue upvoted successfully.", "success");
     } catch (err) {
       console.log(err);
-      // Use Swal/Toast for errors
       Swal.fire(
         "Error",
         err.response?.data?.message || "Failed to upvote",
@@ -104,29 +121,43 @@ const AllIssues = () => {
   };
 
   // ============================
-  // RENDER LOGIC (Loader Challenge)
+  // THEME-AWARE CLASS CALCULATION
+  // (Matching LatestResolvedIssues for consistency)
+  // ============================
+  const titleClass = theme === "civicLight" ? "text-gray-800" : "text-gray-100";
+  const infoTextClass =
+    theme === "civicLight" ? "text-gray-600" : "text-gray-400";
+  const cardBgClass = theme === "civicLight" ? "bg-white" : "bg-gray-900";
+  const cardBorderClass =
+    theme === "civicLight" ? "border-gray-500" : "border-gray-700";
+  const upvoteButtonClass =
+    theme === "civicLight"
+      ? "bg-blue-600 hover:bg-blue-700 text-white"
+      : "bg-blue-800 hover:bg-blue-700 text-white";
+  const detailButtonClass =
+    theme === "civicLight"
+      ? "bg-green-600 hover:bg-green-700 text-white"
+      : "bg-green-800 hover:bg-green-700 text-white";
+
+  // ============================
+  // RENDER LOGIC
   // ============================
   if (isLoading) {
-    // ✅ Loader Challenge Completed
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <span className="loading loading-spinner loading-lg"></span>
-        <p className="ml-2 text-xl">Loading issues...</p>
-      </div>
-    );
+    return <IssueCardSkeleton />;
   }
 
-  // Handle no results *after* loading is complete
   const noResults = currentIssues.length === 0 && totalIssues === 0;
 
   return (
-    <div className="max-w-full mx-auto p-5">
-      <h1 className="text-3xl font-bold mb-5">All Issues</h1>
+    <div className={`max-w-full mx-auto p-5 ${cardBgClass}`}>
+      {/* Title */}
+      <h1 className={`text-3xl font-bold ${titleClass} mb-5`}>All Issues</h1>
 
       {/* Filters */}
       <div className="flex gap-3 mb-6">
+        {/* Category Select */}
         <select
-          className="select select-bordered"
+          className={`select border-2 p-2 border-gray-600 rounded-xl ${infoTextClass} ${cardBgClass}`}
           onChange={(e) => handleFilterChange(setCategory, e.target.value)}
           value={category}
         >
@@ -139,8 +170,9 @@ const AllIssues = () => {
           <option value="Other">Other</option>
         </select>
 
+        {/* Status Select */}
         <select
-          className="select select-bordered"
+          className={`select border-2 p-2 border-gray-600 rounded-xl ${infoTextClass} ${cardBgClass}`}
           onChange={(e) => handleFilterChange(setStatus, e.target.value)}
           value={status}
         >
@@ -151,8 +183,9 @@ const AllIssues = () => {
           <option value="Closed">Closed</option>
         </select>
 
+        {/* Priority Select */}
         <select
-          className="select select-bordered"
+          className={`select border-2 p-2 border-gray-600 rounded-xl ${infoTextClass} ${cardBgClass}`}
           onChange={(e) => handleFilterChange(setPriority, e.target.value)}
           value={priority}
         >
@@ -161,35 +194,46 @@ const AllIssues = () => {
           <option value="Normal">Normal</option>
         </select>
 
+        {/* Search Input */}
         <input
           type="text"
           placeholder="Search issues (Title, Location)..."
-          className="input input-bordered w-full"
+          className={`input border-2 p-2 border-gray-600 rounded-xl w-full ${titleClass} ${cardBgClass}`}
           onChange={(e) => handleFilterChange(setSearch, e.target.value)}
           value={search}
         />
       </div>
 
-      {/* Issue Cards (Uses currentIssues from server) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Issue Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {currentIssues.map((issue) => (
-          <div key={issue._id} className="border p-4 rounded-lg shadow">
+          <div
+            key={issue._id}
+            // Apply calculated card style
+            className={`${cardBgClass} ${cardBorderClass} border p-4 rounded-lg shadow`}
+          >
             <img
               src={issue.image}
               className="h-40 w-full object-cover rounded"
               alt={issue.title}
             />
 
-            <h2 className="text-xl font-semibold mt-2">{issue.title}</h2>
-            <p className="text-sm text-gray-600">{issue.category}</p>
+            {/* Apply calculated text classes */}
+            <h2 className={`text-xl font-semibold mt-2 ${titleClass}`}>
+              {issue.title}
+            </h2>
+            <p className={`text-sm ${infoTextClass}`}>{issue.category}</p>
+
             <p
               className={`text-sm font-bold mt-1 ${
-                issue.priority === "High" ? "text-red-500" : "text-green-500"
+                issue.priority === "High" ? "text-red-500" : "text-green-500" // Keep static colors for urgency
               }`}
             >
               Priority: {issue.priority}
             </p>
-            <p className="mt-1">
+
+            {/* Apply calculated info class */}
+            <p className={`mt-1 ${infoTextClass}`}>
               <FaLocationPin className="inline mr-1" />
               {issue.reporterDistrict}, {issue.reporterRegion}
             </p>
@@ -197,14 +241,16 @@ const AllIssues = () => {
             <div className="flex justify-between mt-3 items-center">
               <button
                 onClick={() => handleUpvote(issue._id)}
-                className="bg-blue-600 text-white px-3 py-1 rounded flex items-center gap-1"
+                // Apply calculated upvote button style
+                className={`${upvoteButtonClass} px-3 py-1 rounded flex items-center gap-1 transition`}
               >
                 <FaVoteYea /> {issue.upvotes}
               </button>
 
               <Link
                 to={`/viewDetails/${issue._id}`}
-                className="bg-green-600 text-white px-3 py-1 rounded"
+                // Apply calculated detail button style
+                className={`${detailButtonClass} px-3 py-1 rounded transition`}
               >
                 View Details
               </Link>
@@ -219,14 +265,18 @@ const AllIssues = () => {
           <button
             onClick={handlePrevPage}
             disabled={currentPage === 1}
+            // DaisyUI 'btn' and 'btn-primary' handle coloring automatically
             className={`btn ${
-              currentPage === 1 ? "btn-disabled" : "btn-primary"
+              currentPage === 1
+                ? "btn-disabled"
+                : "btn-primary bg-blue-600 rounded-lg text-white px-3 py-1"
             }`}
           >
             Previous
           </button>
 
-          <span className="text-lg font-medium">
+          {/* Applying the main text color class */}
+          <span className={`text-lg font-medium ${titleClass}`}>
             Page {currentPage} of {totalPages}
           </span>
 
@@ -234,7 +284,9 @@ const AllIssues = () => {
             onClick={handleNextPage}
             disabled={currentPage === totalPages}
             className={`btn ${
-              currentPage === totalPages ? "btn-disabled" : "btn-primary"
+              currentPage === totalPages
+                ? "btn-disabled"
+                : "btn-primary bg-blue-600 rounded-lg text-white px-3 py-1"
             }`}
           >
             Next
@@ -244,7 +296,7 @@ const AllIssues = () => {
 
       {/* Handle no results after filtering/searching */}
       {noResults && !isLoading && (
-        <div className="text-center mt-8 text-xl text-gray-500">
+        <div className={`text-center mt-8 text-xl ${infoTextClass}`}>
           No issues found matching the criteria.
         </div>
       )}

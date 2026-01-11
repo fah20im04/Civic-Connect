@@ -1,18 +1,49 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useLoaderData } from "react-router-dom";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import { getAuth } from "firebase/auth";
 import useAuth from "../../Hooks/useAuth";
+import Swal from "sweetalert2";
 
 const imageHostKey = import.meta.env.VITE_IMAGE_HOST_KEY;
 
 const ReportIssue = () => {
+  const [theme, setTheme] = useState(
+    localStorage.getItem("theme") || "civicLight"
+  );
+
+  useEffect(() => {
+    const handleThemeChange = () => {
+      const newTheme = localStorage.getItem("theme") || "civicLight";
+      if (newTheme !== theme) setTheme(newTheme);
+    };
+    window.addEventListener("storage", handleThemeChange);
+    return () => window.removeEventListener("storage", handleThemeChange);
+  }, [theme]);
+
+  const isLight = theme === "civicLight";
+
+  const formBg = isLight ? "bg-white" : "bg-gray-900";
+  const formText = isLight ? "text-gray-900" : "text-gray-100";
+  const titleClass = "text-2xl font-bold mb-6 text-center text-blue-600";
+  const inputClass = isLight
+    ? "input input-bordered w-full mb-4 p-2 rounded-lg text-gray-900 placeholder-gray-500 bg-gray-100 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
+    : "input input-bordered w-full mb-4 p-2 rounded-lg text-gray-100 placeholder-gray-400 bg-gray-800 border-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none transition";
+  const textareaClass = isLight
+    ? "textarea textarea-bordered w-full mb-4 p-2 rounded-lg text-gray-900 placeholder-gray-500 bg-gray-100 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
+    : "textarea textarea-bordered w-full mb-4 p-2 rounded-lg text-gray-100 placeholder-gray-400 bg-gray-800 border-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none transition";
+  const fileInputClass = isLight
+    ? "file-input w-full mb-4 p-2 rounded-lg file-input-bordered bg-gray-100 text-gray-900 focus:ring-2 focus:ring-blue-400 transition"
+    : "file-input w-full mb-4 p-2 rounded-lg file-input-bordered bg-gray-800 text-gray-100 border-gray-700 focus:ring-2 focus:ring-blue-500 transition";
+  const labelClass = isLight
+    ? "label text-gray-700 mb-1"
+    : "label text-gray-300 mb-1";
+
   const { user } = useAuth();
   const navigate = useNavigate();
   const axiosSecure = useAxiosSecure();
-
-  const serviceCenters = useLoaderData(); // JSON loader data
+  const serviceCenters = useLoaderData();
 
   const {
     register,
@@ -20,28 +51,25 @@ const ReportIssue = () => {
     watch,
     formState: { errors },
   } = useForm();
-
   const [imageFile, setImageFile] = useState(null);
 
-  const reporterRegion = watch("reporterRegion"); // watch region to filter districts
+  const reporterRegion = watch("reporterRegion");
 
-  // Extract unique regions from JSON
-  const regions = useMemo(() => {
-    const uniqueRegions = [...new Set(serviceCenters.map((c) => c.region))];
-    return uniqueRegions;
-  }, [serviceCenters]);
-
-  // Filter districts based on selected region
-  const districts = useMemo(() => {
-    return serviceCenters
-      .filter((c) => c.region === reporterRegion)
-      .map((c) => c.district);
-  }, [serviceCenters, reporterRegion]);
+  const regions = useMemo(
+    () => [...new Set(serviceCenters.map((c) => c.region))],
+    [serviceCenters]
+  );
+  const districts = useMemo(
+    () =>
+      serviceCenters
+        .filter((c) => c.region === reporterRegion)
+        .map((c) => c.district),
+    [serviceCenters, reporterRegion]
+  );
 
   const uploadImageToImgbb = async (file) => {
     const formData = new FormData();
     formData.append("image", file);
-
     const url = `https://api.imgbb.com/1/upload?key=${imageHostKey}`;
     const res = await fetch(url, { method: "POST", body: formData });
     const data = await res.json();
@@ -50,10 +78,17 @@ const ReportIssue = () => {
 
   const onSubmit = async (data) => {
     try {
-      let imageUrl = "";
-      if (imageFile) {
-        imageUrl = await uploadImageToImgbb(imageFile);
+      if (!user) {
+        Swal.fire(
+          "Authentication Error",
+          "Please log in to report an issue.",
+          "warning"
+        );
+        return;
       }
+
+      let imageUrl = "";
+      if (imageFile) imageUrl = await uploadImageToImgbb(imageFile);
 
       const issue = {
         title: data.title,
@@ -62,57 +97,64 @@ const ReportIssue = () => {
         image: imageUrl,
         reporterRegion: data.reporterRegion,
         reporterDistrict: data.reporterDistrict,
-        // userEmail: user.email,
       };
 
       const auth = getAuth();
-      const currentUser = auth.currentUser;
-      const token = await currentUser.getIdToken();
+      const token = await auth.currentUser.getIdToken();
 
       await axiosSecure.post("/issues", issue, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      Swal.fire("Success!", "Issue reported successfully.", "success");
       navigate("/my-issues");
     } catch (err) {
       console.error(err);
-      Swal.fire({
-        title: "Failed to submit issues!",
-        text: "Action completed successfully.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      const errorMessage =
+        err.response?.data?.message ||
+        "Failed to submit issue due to a network or server error.";
+      Swal.fire("Submission Failed", errorMessage, "error");
     }
   };
 
   return (
-    <div className="py-16">
+    <div
+      className={`min-h-screen  mt-16 flex items-center justify-center px-4 py-8 ${
+        isLight ? "bg-gray-100" : "bg-gray-950"
+      }`}
+    >
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full mx-auto p-6 bg-white rounded shadow"
+        className={`w-full max-w-md p-8 rounded-xl shadow-xl ${formBg} ${formText} transition`}
       >
-        <h2 className="text-2xl font-bold mb-4">Report an Issue</h2>
+        <h2 className={titleClass}>Report an Issue</h2>
 
+        {/* Title */}
         <input
           type="text"
           placeholder="Title"
-          className="input input-bordered w-full mb-3"
+          className={inputClass}
           {...register("title", { required: true })}
         />
-        {errors.title && <p className="text-red-500">Title is required</p>}
+        {errors.title && (
+          <p className="text-red-500 text-sm mb-2">Title is required</p>
+        )}
 
+        {/* Description */}
         <textarea
           placeholder="Description"
-          className="textarea textarea-bordered w-full mb-3"
+          className={textareaClass}
+          rows={4}
           {...register("description", { required: true })}
         />
         {errors.description && (
-          <p className="text-red-500">Description is required</p>
+          <p className="text-red-500 text-sm mb-2">Description is required</p>
         )}
 
+        {/* Category */}
         <select
-          className="select select-bordered w-full mb-3"
           {...register("category", { required: true })}
+          className={inputClass}
         >
           <option value="">Select Category</option>
           <option value="Broken Streetlight">Broken Streetlight</option>
@@ -123,21 +165,22 @@ const ReportIssue = () => {
           <option value="Other">Other</option>
         </select>
         {errors.category && (
-          <p className="text-red-500">Category is required</p>
+          <p className="text-red-500 text-sm mb-2">Category is required</p>
         )}
 
-        <label className="label">Choose Photo</label>
+        {/* Image */}
+        <label className={labelClass}>Choose Photo</label>
         <input
           type="file"
-          className="file-input w-full mb-3"
+          className={fileInputClass}
           accept="image/*"
           onChange={(e) => setImageFile(e.target.files[0])}
         />
 
-        {/* Reporter Region */}
+        {/* Region */}
         <select
           {...register("reporterRegion", { required: true })}
-          className="select select-bordered w-full mb-3"
+          className={inputClass}
         >
           <option value="">Select your region</option>
           {regions.map((r, i) => (
@@ -147,13 +190,14 @@ const ReportIssue = () => {
           ))}
         </select>
         {errors.reporterRegion && (
-          <p className="text-red-500">Region is required</p>
+          <p className="text-red-500 text-sm mb-2">Region is required</p>
         )}
 
-        {/* Reporter District */}
+        {/* District */}
         <select
           {...register("reporterDistrict", { required: true })}
-          className="select select-bordered w-full mb-3"
+          className={inputClass}
+          disabled={!reporterRegion}
         >
           <option value="">Select Reporter District</option>
           {districts.map((d, i) => (
@@ -163,10 +207,14 @@ const ReportIssue = () => {
           ))}
         </select>
         {errors.reporterDistrict && (
-          <p className="text-red-500">District is required</p>
+          <p className="text-red-500 text-sm mb-2">District is required</p>
         )}
 
-        <button type="submit" className="btn btn-primary w-full">
+        {/* Submit */}
+        <button
+          type="submit"
+          className="btn w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition"
+        >
           Submit Issue
         </button>
       </form>

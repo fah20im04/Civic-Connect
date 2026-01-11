@@ -1,14 +1,45 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../../Hooks/useAuth";
 import SocialLogin from "./SocialLogin";
+import Swal from "sweetalert2";
 
 const Login = () => {
+  const [theme, setTheme] = useState(
+    localStorage.getItem("theme") || "civicLight"
+  );
+
+  useEffect(() => {
+    const handleThemeChange = () => {
+      const newTheme = localStorage.getItem("theme") || "civicLight";
+      setTheme(newTheme);
+    };
+    window.addEventListener("storage", handleThemeChange);
+    return () => window.removeEventListener("storage", handleThemeChange);
+  }, []);
+
+  // ===== THEME CLASSES =====
+  const pageBg = theme === "civicLight" ? "bg-gray-50" : "bg-gray-950";
+  const cardBg = theme === "civicLight" ? "bg-white" : "bg-gray-900";
+  const borderClass =
+    theme === "civicLight" ? "border-gray-200" : "border-gray-800";
+  const titleClass = theme === "civicLight" ? "text-gray-800" : "text-gray-100";
+  const subTextClass =
+    theme === "civicLight" ? "text-gray-600" : "text-gray-400";
+  const inputBg =
+    theme === "civicLight"
+      ? "bg-gray-100 text-gray-800"
+      : "bg-gray-800 text-gray-100";
+  const inputBorder =
+    theme === "civicLight" ? "border-gray-300" : "border-gray-700";
+
+  // ===== FORM =====
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm();
 
@@ -19,93 +50,134 @@ const Login = () => {
 
   const handleLogin = (data) => {
     signInUser(data.email, data.password)
-      .then((result) => {
-        console.log(result.user);
+      .then(() => {
+        Swal.fire({
+          icon: "success",
+          title: "Welcome back!",
+          text: "Login successful.",
+          timer: 1500,
+          showConfirmButton: false,
+        });
         navigate(location?.state || "/");
       })
       .catch((error) => {
-        console.log(error);
+        Swal.fire({
+          icon: "error",
+          title: "Login failed",
+          text: error.message || "Invalid credentials",
+        });
       });
   };
 
+  const handleDemoLogin = (role) => {
+    const creds =
+      role === "admin"
+        ? { email: "maishaamin@google.com", password: "MaishaAmin12!" }
+        : { email: "sazzad@gmail.com", password: "SazzadRashid12!" };
+
+    setValue("email", creds.email);
+    setValue("password", creds.password);
+    handleSubmit(handleLogin)();
+  };
+
   return (
-    <div className="flex flex-col md:flex-col-reverse lg:flex-row min-h-[80vh] items-center justify-center gap-8 px-4 lg:px-20 py-10">
-      <div className="mt-15 w-full lg:w-1/2 max-w-lg">
-        <form onSubmit={handleSubmit(handleLogin)} className="space-y-4">
-          <h2 className="text-3xl font-bold text-primary mb-6">
-            Login to CivicConnect
+    <div
+      className={`min-h-[85vh] flex items-center mt-16 justify-center px-4 ${pageBg}`}
+    >
+      <div
+        className={`w-full max-w-md mt-10 p-8 rounded-2xl border shadow-xl ${cardBg} ${borderClass}`}
+      >
+        {/* Header */}
+        <div className="mb-6 text-center">
+          <h2 className={`text-3xl font-bold ${titleClass}`}>
+            Welcome Back 👋
           </h2>
-          <p className="text-2xl font-bold text-green-700">Welcome back!</p>
+          <p className={`mt-1 text-sm ${subTextClass}`}>
+            Login to continue to CivicConnect
+          </p>
+        </div>
 
+        {/* Form */}
+        <form onSubmit={handleSubmit(handleLogin)} className="space-y-4">
           {/* Email */}
-          <label className="label mt-3">Email</label>
-          <input
-            type="email"
-            {...register("email", { required: true })}
-            className="input input-bordered w-full"
-            placeholder="Email"
-          />
-          {errors.email && <p className="text-red-500">Email is required</p>}
-
-          {/* Password */}
-          <div className="w-full">
-            <div className="w-full">
-              <label className="label mt-3">Password</label>
-              <div className="relative w-full">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  {...register("password", {
-                    required: true,
-                    minLength: 6,
-                    pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$/,
-                  })}
-                  className="input input-bordered w-full pr-10"
-                  placeholder="Password"
-                />
-                <span
-                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-xl text-gray-500 z-10"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <AiFillEye /> : <AiFillEyeInvisible />}
-                </span>
-              </div>
-
-              {errors.password?.type === "required" && (
-                <p className="text-red-500">Password is required</p>
-              )}
-              {errors.password?.type === "minLength" && (
-                <p className="text-red-500">Minimum 6 characters</p>
-              )}
-              {errors.password?.type === "pattern" && (
-                <p className="text-red-500">
-                  Must include uppercase, lowercase, number, and special
-                  character.
-                </p>
-              )}
-            </div>
-
-            {errors.password && (
-              <p className="text-red-500">Password is required</p>
+          <div>
+            <label className={`text-sm font-medium ${titleClass}`}>Email</label>
+            <input
+              type="email"
+              {...register("email", { required: true })}
+              placeholder="you@example.com"
+              className={`w-full mt-1 px-4 py-2 rounded-lg border outline-none focus:ring-2 focus:ring-blue-500 ${inputBg} ${inputBorder}`}
+            />
+            {errors.email && (
+              <p className="text-red-500 text-xs mt-1">Email is required</p>
             )}
           </div>
 
-          <button className="btn btn-primary w-full mt-4 text-white">
+          {/* Password */}
+          <div>
+            <label className={`text-sm font-medium ${titleClass}`}>
+              Password
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                {...register("password", {
+                  required: true,
+                  minLength: 6,
+                })}
+                placeholder="••••••••"
+                className={`w-full mt-1 px-4 py-2 rounded-lg border outline-none focus:ring-2 focus:ring-blue-500 pr-10 ${inputBg} ${inputBorder}`}
+              />
+              <span
+                onClick={() => setShowPassword(!showPassword)}
+                className={`absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer ${subTextClass}`}
+              >
+                {showPassword ? <AiFillEye /> : <AiFillEyeInvisible />}
+              </span>
+            </div>
+            {errors.password && (
+              <p className="text-red-500 text-xs mt-1">Password is required</p>
+            )}
+          </div>
+
+          {/* Login Button */}
+          <button className="w-full mt-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition">
             Login
           </button>
         </form>
-        <SocialLogin></SocialLogin>
 
-        <p className="mt-4 text-center">
-          Don't have an account?{" "}
+        {/* Demo Buttons */}
+        <div className="grid grid-cols-2 gap-3 mt-4">
+          <button
+            onClick={() => handleDemoLogin("user")}
+            className="py-2 rounded-lg border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white transition"
+          >
+            Demo User
+          </button>
+          <button
+            onClick={() => handleDemoLogin("admin")}
+            className="py-2 rounded-lg border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white transition"
+          >
+            Demo Admin
+          </button>
+        </div>
+
+        {/* Social Login */}
+        <div className="mt-6">
+          <SocialLogin />
+        </div>
+
+        {/* Register */}
+        <p className={`mt-6 text-center text-sm ${subTextClass}`}>
+          Don’t have an account?{" "}
           <Link
             to="/register"
             state={location.state}
-            className="text-primary font-semibold"
+            className="text-blue-500 font-semibold hover:underline"
           >
             Register
           </Link>
         </p>
-        
       </div>
     </div>
   );

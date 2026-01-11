@@ -1,35 +1,45 @@
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import LoadingPage from "../Home/LoadingPage";
+import IssueCardSkeleton from "../Home/IssueCardSkeleton";
 
 const LatestResolvedIssues = () => {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+
+  const [theme, setTheme] = useState(
+    localStorage.getItem("theme") || "civicLight"
+  );
+
   const axiosSecure = useAxiosSecure();
+
+  useEffect(() => {
+    const handleThemeChange = () => {
+      const newTheme = localStorage.getItem("theme") || "civicLight";
+      // Only update state and re-render if the theme actually changed
+      if (newTheme !== theme) {
+        setTheme(newTheme);
+      }
+    };
+
+    window.addEventListener("storage", handleThemeChange);
+
+    return () => {
+      window.removeEventListener("storage", handleThemeChange);
+    };
+  }, [theme]); // Include 'theme' to ensure 'handleThemeChange' uses the latest value
 
   useEffect(() => {
     const fetchIssues = async () => {
       try {
         setLoading(true);
-        const res = await axiosSecure.get("/issues"); // fetch all issues
-
-        // ⭐️ THE FINAL FIX: We now know the issues array is nested under 'issues'
+        const res = await axiosSecure.get("/issues");
         const issuesArray = res.data?.issues;
-
-        if (Array.isArray(issuesArray)) {
-          setIssues(issuesArray);
-        } else {
-          console.error(
-            "API response structure unexpected. Setting issues to empty array.",
-            res.data
-          );
-          setIssues([]);
-        }
+        setIssues(Array.isArray(issuesArray) ? issuesArray : []);
       } catch (err) {
         console.error("Failed to fetch issues:", err);
-        setIssues([]); // Ensure state is an array on fetch failure
+        setIssues([]);
       } finally {
         setLoading(false);
       }
@@ -37,90 +47,101 @@ const LatestResolvedIssues = () => {
     fetchIssues();
   }, [axiosSecure]);
 
-  // Filter resolved & sort by createdAt descending
-  // Using a safe default ([]) prevents the TypeError, even if issues is temporarily null/undefined
-  const issuesToProcess = Array.isArray(issues) ? issues : [];
-
-  const resolvedIssues = issuesToProcess
+  const resolvedIssues = issues
     .filter((i) => i.status === "Resolved")
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 6);
 
-  if (loading) return <LoadingPage />;
+  if (loading) return <IssueCardSkeleton />;
 
-  if (resolvedIssues.length === 0)
-    return (
-      <div className="p-6">
-        <h2 className="text-3xl font-bold mb-6">Latest Resolved Issues</h2>
-        <p className="text-center text-gray-500">No resolved issues yet.</p>
-      </div>
-    );
+  // 3. RE-INTRODUCE MANUAL CLASS CALCULATION
+  const sectionTitleClass =
+    theme === "civicLight" ? "text-gray-800" : "text-blue-700";
+  const sectionDescClass =
+    theme === "civicLight" ? "text-gray-500" : "text-gray-400";
+  const cardBgClass = theme === "civicLight" ? "bg-white" : "bg-gray-900";
+  const cardBorderClass =
+    theme === "civicLight" ? "border-gray-200" : "border-gray-700";
+  const titleClass = theme === "civicLight" ? "text-gray-800" : "text-gray-100";
+  const descClass = theme === "civicLight" ? "text-gray-500" : "text-gray-400";
+  const infoTextClass =
+    theme === "civicLight" ? "text-gray-600" : "text-gray-400";
+  const resolvedBadgeClass =
+    theme === "civicLight"
+      ? "bg-teal-100 text-teal-700"
+      : "bg-teal-700 text-teal-100";
 
   return (
-    <div className="p-6 ">
-      <h2 className="text-3xl font-bold mb-6">Latest Resolved Issues</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {resolvedIssues.map((issue) => (
-          <div
-            key={issue._id}
-            className="p-4 rounded-xl shadow hover:shadow-md transition bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 border border-green-600"
-          >
-            {issue.image && (
-              <img
-                src={issue.image}
-                alt={issue.title}
-                className="w-full h-48 object-cover mb-3 rounded"
-              />
-            )}
+    <section className={`max-w-7xl mx-auto ${cardBgClass} px-4 py-12`}>
+      <div className="mb-8">
+        {/* Using manual classes */}
+        <h2 className={`text-3xl font-semibold ${sectionTitleClass}`}>
+          Latest Resolved Issues
+        </h2>
+        <p className={`${sectionDescClass} mt-1`}>
+          Recently resolved civic issues in your community
+        </p>
+      </div>
 
-            {/* Title with subtle success icon */}
-            <h3 className="font-semibold text-lg flex items-center text-gray-900">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-green-600 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
+      {resolvedIssues.length === 0 ? (
+        <p className={`text-center ${sectionDescClass}`}>
+          No resolved issues yet.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {resolvedIssues.map((issue) => (
+            <div
+              key={issue._id}
+              // Using manual classes
+              className={`${cardBgClass} border ${cardBorderClass} rounded-xl p-5 shadow-sm hover:shadow-md transition space-y-4`}
+            >
+              {issue.image && (
+                <img
+                  src={issue.image}
+                  alt={issue.title}
+                  className="w-full h-40 object-cover rounded-xl"
                 />
-              </svg>
-              {issue.title}
-            </h3>
+              )}
 
-            {/* Description */}
-            <p className="text-sm mb-2 text-gray-700">{issue.description}</p>
+              <div className="space-y-1">
+                <h3 className={`text-lg font-semibold ${titleClass}`}>
+                  {issue.title}
+                </h3>
+                <p className={`text-sm ${descClass} line-clamp-2`}>
+                  {issue.description}
+                </p>
+              </div>
 
-            {/* Meta info */}
-            <p className="text-gray-800">
-              <span className="font-semibold">Category:</span> {issue.category}
-            </p>
-            <p className="text-gray-800">
-              <span className="font-semibold">Location:</span> {issue.location}
-            </p>
+              <div className={`text-sm ${infoTextClass} space-y-1`}>
+                <p>
+                  <span className="font-medium">Category:</span>{" "}
+                  {issue.category}
+                </p>
+                <p>
+                  <span className="font-medium">Location:</span>{" "}
+                  {issue.location}
+                </p>
+              </div>
 
-            {/* Action Button */}
-            <div className="flex justify-between">
-              <Link
-                to={`/viewDetails/${issue._id}`}
-                className="mt-3 bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-md transition"
-              >
-                View Details
-              </Link>
+              <div className="flex items-center justify-between pt-3">
+                <Link
+                  to={`/viewDetails/${issue._id}`}
+                  className="text-sm text-blue-600 font-medium hover:underline"
+                >
+                  View Details →
+                </Link>
 
-              {/* Resolved Badge */}
-              <div className="mt-3 inline-block bg-green-50 text-green-700  font-medium px-3 py-1 rounded-full border border-green-200">
-                Issue Resolved
+                <span
+                  className={`text-xs px-3 py-1 rounded-full font-medium ${resolvedBadgeClass}`}
+                >
+                  Resolved
+                </span>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-    </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 };
 

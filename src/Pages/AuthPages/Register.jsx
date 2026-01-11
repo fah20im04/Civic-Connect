@@ -32,10 +32,8 @@ const Register = () => {
 
       const profileImg = data.photo[0];
 
-    
       await registerUser(data.email, data.password);
 
-    
       const formData = new FormData();
       formData.append("image", profileImg);
 
@@ -44,18 +42,15 @@ const Register = () => {
       const photoURL = imgUpload.data.data.url;
       console.log("Image uploaded:", photoURL);
 
-      
       await updateUserProfile({
         displayName: data.name,
         photoURL,
       });
       console.log("Firebase profile updated");
 
-      
       const auth = getAuth();
       const idToken = await auth.currentUser.getIdToken(true);
 
-    
       const userInfo = {
         email: data.email,
         displayName: data.name,
@@ -69,7 +64,7 @@ const Register = () => {
         },
       });
 
-      // const res = await axios.post("https://assignment-11-server-alpha-nine.vercel.app/users", userInfo, {
+      // const res = await axios.post("http://localhost:3000/users", userInfo, {
       //   headers: {
       //     "Content-Type": "application/json",
       //   },

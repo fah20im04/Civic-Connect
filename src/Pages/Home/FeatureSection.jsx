@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { CheckCircle } from "lucide-react";
 
 const FeatureSection = () => {
@@ -11,22 +11,63 @@ const FeatureSection = () => {
     "View resolved issues on dashboard",
   ];
 
-  return (
-    <div className="bg-gray-300 rounded-xl py-16">
-      <h2 className="text-3xl font-bold text-center mb-8">Features</h2>
+  // 1. Initialize local theme state
+  const [theme, setTheme] = useState(
+    localStorage.getItem("theme") || "civicLight"
+  );
 
-      <div className="max-w-5xl mx-auto grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {features.map((item, i) => (
+  // 2. Add event listener to react to global theme changes instantly
+  useEffect(() => {
+    const handleThemeChange = () => {
+      const newTheme = localStorage.getItem("theme") || "civicLight";
+      // Only update state and re-render if the theme actually changed
+      if (newTheme !== theme) {
+        setTheme(newTheme);
+      }
+    };
+
+    // Listen for localStorage changes
+    window.addEventListener("storage", handleThemeChange);
+
+    // Cleanup listener on unmount
+    return () => {
+      window.removeEventListener("storage", handleThemeChange);
+    };
+  }, [theme]); // Depend on theme so the check is current
+
+  // 3. MANUAL CLASS CALCULATION
+  const titleClass = theme === "civicLight" ? "text-gray-800" : "text-gray-100";
+  const textClass =
+    theme === "civicLight" ? "text-slate-700" : "text-slate-200";
+  const cardBorderClass =
+    theme === "civicLight" ? "border-slate-200" : "border-slate-800";
+  const cardBgClass = theme === "civicLight" ? "bg-gray-200" : "bg-gray-900";
+  const cardBgClass1 = theme === "civicLight" ? "bg-white" : "bg-gray-900";
+
+  return (
+    <section className={`${cardBgClass} max-w-7xl mx-auto px-4 py-16`}>
+      {/* Using calculated class for the title color */}
+      <h2 className={`text-3xl font-semibold ${titleClass} text-center mb-12`}>
+        Features
+      </h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {features.map((feature, idx) => (
           <div
-            key={i}
-            className="p-5 bg-white rounded-xl border shadow hover:shadow-lg transition"
+            key={idx}
+            // Using calculated classes for card styling
+            className={`${cardBgClass1} border ${cardBorderClass}
+                                     rounded-xl p-5 shadow-sm hover:shadow-md transition flex flex-col items-center space-y-4`}
           >
-            <CheckCircle className="text-green-600 mb-3" />
-            <p className="font-medium">{item}</p>
+            {/* The 'text-primary' uses your DaisyUI theme variable and updates automatically */}
+            <CheckCircle className="text-primary w-10 h-10" />
+
+            {/* Using calculated class for feature text color */}
+            <p className={`${textClass} font-medium text-center`}>{feature}</p>
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 

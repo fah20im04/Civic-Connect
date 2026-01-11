@@ -6,6 +6,47 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
 const Profile = () => {
+  // ============================
+  // THEME STATE & LISTENER
+  // ============================
+  const [theme, setTheme] = useState(
+    localStorage.getItem("theme") || "civicLight"
+  );
+
+  useEffect(() => {
+    const handleThemeChange = () => {
+      const newTheme = localStorage.getItem("theme") || "civicLight";
+      if (newTheme !== theme) setTheme(newTheme);
+    };
+    window.addEventListener("storage", handleThemeChange);
+    return () => window.removeEventListener("storage", handleThemeChange);
+  }, [theme]);
+
+  // ============================
+  // THEME-AWARE CLASS CALCULATION
+  // ============================
+  const isLight = theme === "civicLight";
+  const profileBg = isLight ? "bg-white" : "bg-gray-800";
+  const titleClass = isLight ? "text-gray-900" : "text-gray-100";
+  const textClass = isLight ? "text-gray-500" : "text-gray-300";
+  const labelClass = isLight ? "text-gray-600" : "text-gray-300";
+  const inputEnabledClass = isLight
+    ? "border-gray-300 focus:ring-blue-500 text-gray-900"
+    : "border-gray-600 bg-gray-700 focus:ring-blue-500 text-gray-100";
+  const inputDisabledClass = isLight
+    ? "border-gray-200 bg-gray-100 cursor-not-allowed text-gray-500"
+    : "border-gray-700 bg-gray-900 cursor-not-allowed text-gray-500";
+  const blockedMessageBg = isLight
+    ? "bg-red-100 text-red-600 border-red-200"
+    : "bg-red-900 text-red-300 border-red-700";
+
+  // Swal Custom Class for Dark Mode Support
+  const swalCustomClass = {
+    popup: isLight ? "" : "bg-gray-800 text-gray-100",
+    title: isLight ? "" : "text-gray-100",
+    content: isLight ? "" : "text-gray-300",
+  };
+
   const axiosSecure = useAxiosSecure();
   const { user: authUser } = useContext(AuthContext);
   const [user, setUser] = useState(null);
@@ -52,14 +93,16 @@ const Profile = () => {
             confirmButtonText: "Great!",
             timer: 1500,
             timerProgressBar: true,
+            customClass: swalCustomClass,
           });
           navigate("/profile", { replace: true });
         } catch (err) {
           Swal.fire({
             title: "Subscription Failed",
             text: "Confirmation failed. Your payment may not have been processed or there was a system error. Please check your payment details and try again.",
-            icon: "error", // Displays a red X icon
+            icon: "error",
             confirmButtonText: "OK",
+            customClass: swalCustomClass,
           });
         }
       };
@@ -78,6 +121,7 @@ const Profile = () => {
         text: "Your account is currently blocked by the Administrator. Profile updates are disabled. Please contact the authorities for assistance.",
         icon: "warning",
         confirmButtonText: "Understood",
+        customClass: swalCustomClass,
       });
       return;
     }
@@ -93,6 +137,7 @@ const Profile = () => {
         text: "Profile updated successfully.",
         icon: "success",
         confirmButtonText: "Continue",
+        customClass: swalCustomClass,
       });
     } catch (err) {
       console.error(err);
@@ -101,6 +146,7 @@ const Profile = () => {
         text: "Failed to update profile due to a system error. Please try again.",
         icon: "error",
         confirmButtonText: "Dismiss",
+        customClass: swalCustomClass,
       });
     } finally {
       setUpdating(false);
@@ -114,6 +160,7 @@ const Profile = () => {
         text: "Your account is currently blocked by the Administrator. Profile updates are disabled. Please contact the authorities for assistance.",
         icon: "warning",
         confirmButtonText: "Understood",
+        customClass: swalCustomClass,
       });
       return;
     }
@@ -127,6 +174,7 @@ const Profile = () => {
           text: "The server returned an invalid response. Please contact support or try again later.",
           icon: "error",
           confirmButtonText: "OK",
+          customClass: swalCustomClass,
         });
         return;
       }
@@ -138,6 +186,7 @@ const Profile = () => {
         text: "The server returned an invalid response. Please contact support or try again later.",
         icon: "error",
         confirmButtonText: "OK",
+        customClass: swalCustomClass,
       });
     } finally {
       setSubscribing(false);
@@ -156,54 +205,70 @@ const Profile = () => {
     return <p className="py-20 text-center text-red-500">User not found.</p>;
 
   return (
-    <div className="max-w-4xl mx-auto py-26 px-4 md:px-0">
+    <div className={`max-w-full mx-auto ${profileBg} py-26 px-4 md:px-0`}>
       {/* Header */}
       <div className="flex flex-col items-center mb-10 text-center">
         <img
           src={user.photoURL}
           alt="Profile"
-          className="w-32 h-32 rounded-full shadow-lg object-cover border-4 border-white"
+          className={`w-32 h-32 rounded-full shadow-lg object-cover border-4 ${
+            isLight ? "border-white" : "border-gray-700"
+          }`}
         />
-        <h1 className="text-3xl font-bold mt-4">{user.displayName}</h1>
-        <p className="text-gray-500">{user.email}</p>
+        <h1 className={`text-3xl font-bold mt-4 ${titleClass}`}>
+          {user.displayName}
+        </h1>
+        <p className={textClass}>{user.email}</p>
 
         {user.isPremium && (
-          <div className="mt-3 px-4 py-1 rounded-full bg-yellow-400 text-white text-sm font-semibold shadow-md">
+          <div className="mt-3 px-4 py-1 rounded-full bg-yellow-500 text-gray-900 text-sm font-semibold shadow-md">
             ⭐ Premium Member
           </div>
         )}
 
         {user.isBlocked && (
-          <div className="mt-4 bg-red-100 text-red-600 px-4 py-2 rounded-lg border border-red-200">
+          <div
+            className={`mt-4 px-4 py-2 rounded-lg border ${blockedMessageBg}`}
+          >
             Your account is blocked. Contact support.
           </div>
         )}
       </div>
 
       {/* Account Details */}
-      <div className="bg-white shadow-xl rounded-2xl p-8 border border-gray-100">
-        <h2 className="text-xl font-semibold mb-6">Account Details</h2>
+      <div
+        className={`${profileBg} shadow-xl rounded-2xl p-8 ${
+          isLight ? "border-gray-100" : "border-gray-700"
+        } border`}
+      >
+        <h2 className={`text-xl font-semibold mb-6 ${titleClass}`}>
+          Account Details
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Display Name Input */}
           <div>
-            <label className="text-sm text-gray-600 font-medium">Name</label>
+            <label className={`text-sm font-medium ${labelClass}`}>Name</label>
             <input
               type="text"
               name="displayName"
               value={formData.displayName}
               onChange={handleChange}
               disabled={user.isBlocked}
-              className="mt-1 w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className={`mt-1 w-full px-4 py-2 rounded-lg border focus:outline-none ${
+                user.isBlocked ? inputDisabledClass : inputEnabledClass
+              }`}
             />
           </div>
 
+          {/* Email Input */}
           <div>
-            <label className="text-sm text-gray-600 font-medium">Email</label>
+            <label className={`text-sm font-medium ${labelClass}`}>Email</label>
             <input
               type="email"
               name="email"
               value={user.email}
               disabled
-              className="mt-1 w-full px-4 py-2 rounded-lg border border-gray-200 bg-gray-100 cursor-not-allowed"
+              className={`mt-1 w-full px-4 py-2 rounded-lg border focus:outline-none ${inputDisabledClass}`}
             />
           </div>
         </div>
@@ -221,16 +286,32 @@ const Profile = () => {
         </button>
 
         {!user.isPremium && !user.isBlocked && (
-          <div className="mt-10 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 p-6 rounded-xl shadow-sm">
-            <h3 className="text-lg font-semibold text-blue-900">
+          // Upgrade Section (Ensure color contrast in dark mode)
+          <div
+            className={`mt-10 p-6 rounded-xl shadow-sm ${
+              isLight
+                ? "bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200"
+                : "bg-gray-700 border border-gray-600"
+            }`}
+          >
+            <h3
+              className={`text-lg font-semibold ${
+                isLight ? "text-blue-900" : "text-blue-300"
+              }`}
+            >
               Upgrade to Premium ✨
             </h3>
-            <p className="text-sm text-blue-800 mt-1">
+            <p
+              className={`text-sm mt-1 ${
+                isLight ? "text-blue-800" : "text-gray-200"
+              }`}
+            >
               Unlock unlimited issue submissions + exclusive features.
             </p>
             <button
               onClick={handleSubscribe}
               disabled={subscribing}
+              // Using green gradient for the button for universal visibility
               className="mt-4 w-full py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-xl shadow hover:opacity-90 transition-all"
             >
               {subscribing ? "Processing..." : "Upgrade for 1000৳"}

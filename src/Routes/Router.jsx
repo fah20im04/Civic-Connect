@@ -83,11 +83,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/viewDetails/:id",
-        element: (
-          <PrivateRoute>
-            <IssueDetails />
-          </PrivateRoute>
-        ),
+        element: <IssueDetails />,
       },
       {
         path: "/boost-payment/:issueId",
@@ -159,9 +155,9 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path:"*",
-    element:<ErrorPage/>
-  }
+    path: "*",
+    element: <ErrorPage />,
+  },
 ]);
 
 export default router;

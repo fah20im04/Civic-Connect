@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import useAxiosSecure from "../../../Hooks/useAxiosSecure";
 import Swal from "sweetalert2";
 import LoadingPage from "../LoadingPage";
+import IssuesTableSkeleton from "../IssuesTableSkeleton ";
 
 // Define the staff payment log data structure
 // This assumes your backend returns objects like this:
@@ -32,7 +33,7 @@ const StaffPaymentLog = () => {
   }, [axiosSecure]);
 
   if (loading) {
-    return <LoadingPage />;
+    return <IssuesTableSkeleton />;
   }
 
   if (error) {

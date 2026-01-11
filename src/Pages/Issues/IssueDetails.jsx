@@ -5,6 +5,7 @@ import LoadingPage from "../Home/LoadingPage";
 import { AuthContext } from "../../Contexts/AuthContext";
 import Timeline from "./Timeline";
 import Swal from "sweetalert2";
+import IssueDetailsSkeleton from "../Home/IssueDetailsSkeleton";
 
 const IssueDetails = () => {
   const { id } = useParams();
@@ -14,10 +15,55 @@ const IssueDetails = () => {
 
   const [issue, setIssue] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [boosting, setBoosting] = useState(false);
+  const [boosting, setBoosting] = useState(false); // Unused state, kept for completeness
 
-  // console.log('issue email',issue.userEmail);
-  
+  // ============================
+  // THEME STATE & LISTENER
+  // ============================
+  const [theme, setTheme] = useState(
+    localStorage.getItem("theme") || "civicLight"
+  );
+
+  useEffect(() => {
+    const handleThemeChange = () => {
+      const newTheme = localStorage.getItem("theme") || "civicLight";
+      if (newTheme !== theme) {
+        setTheme(newTheme);
+      }
+    };
+    window.addEventListener("storage", handleThemeChange);
+    return () => {
+      window.removeEventListener("storage", handleThemeChange);
+    };
+  }, [theme]);
+
+  // ============================
+  // THEME-AWARE CLASS CALCULATION
+  // ============================
+  const titleClass = theme === "civicLight" ? "text-gray-800" : "text-gray-100";
+  const infoTextClass =
+    theme === "civicLight" ? "text-gray-600" : "text-gray-400";
+  const cardBgClass = theme === "civicLight" ? "bg-white" : "bg-gray-900";
+  const cardBorderClass =
+    theme === "civicLight" ? "border-gray-200" : "border-gray-700";
+
+  // Static color definitions (already good, just moved to avoid repetition)
+  const statusColorMap = {
+    Pending: "bg-yellow-500",
+    "In-Progress": "bg-blue-500",
+    Resolved: "bg-green-600",
+    Closed: "bg-gray-700",
+  };
+
+  const priorityColorMap = {
+    Normal: "bg-gray-500",
+    High: "bg-red-600",
+    Critical: "bg-red-700",
+  };
+
+  // ============================
+  // DATA FETCHING & HANDLERS
+  // ============================
   useEffect(() => {
     const fetchIssue = async () => {
       try {
@@ -30,61 +76,60 @@ const IssueDetails = () => {
       }
     };
     fetchIssue();
-  }, [id, user]);
+  }, [id, axiosSecure]); // Added axiosSecure dependency
 
   const handleDelete = async () => {
     if (window.confirm("Are you sure you want to delete this issue?")) {
       try {
         await axiosSecure.delete(`/issues/${id}`);
         Swal.fire({
-        title: "Issue updated succesfully!",
-        text: "Action completed successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+          title: "Issue Deleted Successfully!",
+          text: "The issue has been permanently removed.",
+          icon: "success",
+          confirmButtonText: "OK",
+        });
         navigate("/my-issues");
       } catch (err) {
         console.error(err);
         Swal.fire({
-        title: "Issue update failed!",
-        text: "Action completed successfully.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+          title: "Deletion Failed!",
+          text: "Could not delete the issue.",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
       }
     }
   };
 
-  if (loading) return <LoadingPage />;
+  if (loading) return <IssueDetailsSkeleton />;
   if (!issue)
-    return <p className="py-20 text-center text-red-500">Issue not found.</p>;
+    return (
+      <p className={`py-20 text-center text-xl ${titleClass}`}>
+        Issue not found.
+      </p>
+    );
 
   const isOwner = user && user.email === issue.userEmail;
   const canEdit = isOwner && issue.status === "Pending";
   const canBoost = isOwner && issue.priority !== "High";
-  console.log("issue email",issue.userEmail);
-  
-  // Status color logic
-  const statusColor = {
-    Pending: "bg-yellow-500",
-    "In-Progress": "bg-blue-500",
-    Resolved: "bg-green-600",
-    Closed: "bg-gray-700",
-  }[issue.status];
 
-  const priorityColor = {
-    Normal: "bg-gray-500",
-    High: "bg-red-600",
-    Critical: "bg-red-700",
-  }[issue.priority];
+  // Dynamic color classes based on issue data
+  const statusColor = statusColorMap[issue.status];
+  const priorityColor = priorityColorMap[issue.priority];
 
   return (
-    <div className="max-w-5xl py-22 mx-auto px-4">
-      <button onClick={() => navigate(-1)} className="btn mb-6">
+    <div className={`max-w-full py-22 mx-auto px-4 ${cardBgClass}`}>
+      <button
+        onClick={() => navigate(-1)}
+        className={`btn rounded-xl p-3 bg-blue-600 mb-6 ${titleClass} border ${cardBorderClass}`}
+      >
         ← Go Back
       </button>
 
-      <div className="bg-white shadow-lg rounded-lg p-6 space-y-6">
+      {/* Main Content Card */}
+      <div
+        className={`${cardBgClass} ${cardBorderClass} shadow-lg rounded-lg p-6 space-y-6 border`}
+      >
         {/* Image */}
         {issue.image && (
           <img
@@ -96,7 +141,7 @@ const IssueDetails = () => {
 
         {/* Title + Status + Priority */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-          <h1 className="text-3xl font-bold">{issue.title}</h1>
+          <h1 className={`text-3xl font-bold ${titleClass}`}>{issue.title}</h1>
           <div className="flex gap-2 flex-wrap">
             <span
               className={`px-4 py-1 rounded-full text-white font-semibold ${statusColor}`}
@@ -112,12 +157,15 @@ const IssueDetails = () => {
         </div>
 
         {/* Info Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-gray-700">
+        <div
+          className={`grid grid-cols-1 md:grid-cols-2 gap-5 ${infoTextClass}`}
+        >
           <p className="font-semibold">
             <span className="font-bold">Category:</span> {issue.category}
           </p>
           <p className="font-semibold">
-            <span className="font-bold">Location:</span> {issue.reporterDistrict}
+            <span className="font-bold">Location:</span>{" "}
+            {issue.reporterDistrict}
           </p>
           <p className="font-semibold">
             <span className="font-bold">Created At:</span>{" "}
@@ -139,11 +187,15 @@ const IssueDetails = () => {
 
         {/* Description */}
         <div>
-          <h2 className="text-xl font-bold mb-2">Description</h2>
-          <p className="text-gray-600 font-semibold">{issue.description}</p>
+          <h2 className={`text-xl font-bold mb-2 ${titleClass}`}>
+            Description
+          </h2>
+          <p className={`font-semibold ${infoTextClass}`}>
+            {issue.description}
+          </p>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons (Colors are static/strong, so no change needed) */}
         <div className="flex flex-wrap gap-3 mt-4">
           {canEdit && (
             <button
@@ -173,7 +225,10 @@ const IssueDetails = () => {
 
         {/* Timeline */}
         <div className="mt-6">
-          <h2 className="text-xl font-bold mb-2">Issue Timeline</h2>
+          <h2 className={`text-xl font-bold mb-2 ${titleClass}`}>
+            Issue Timeline
+          </h2>
+          {/* Assuming Timeline component handles its own theme styling */}
           <Timeline timeline={issue.timeline} />
         </div>
       </div>

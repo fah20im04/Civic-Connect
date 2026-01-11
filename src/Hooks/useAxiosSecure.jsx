@@ -5,9 +5,8 @@ import { useNavigate } from "react-router-dom";
 import useAuth from "./useAuth";
 
 const axiosSecure = axios.create({
-  baseURL: "https://assignment-11-server-alpha-nine.vercel.app",
+  baseURL: "http://localhost:3000",
 });
-
 
 axiosSecure.interceptors.request.use(
   (config) => {
@@ -27,7 +26,6 @@ const useAxiosSecure = () => {
   useEffect(() => {
     const auth = getAuth();
 
-
     const unsubscribe = onIdTokenChanged(auth, async (user) => {
       if (user) {
         const token = await user.getIdToken(true);
@@ -38,13 +36,10 @@ const useAxiosSecure = () => {
       }
     });
 
-
     const interceptor = axiosSecure.interceptors.response.use(
       (res) => res,
       (error) => {
-        if (
-          error?.response?.status === 401 
-        ) {
+        if (error?.response?.status === 401) {
           logOut();
           navigate("/login");
         }
