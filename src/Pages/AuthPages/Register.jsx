@@ -64,7 +64,7 @@ const Register = () => {
         },
       });
 
-      // const res = await axios.post("http://localhost:3000/users", userInfo, {
+      // const res = await axios.post("https://assignment-11-server-eight-sooty.vercel.app//users", userInfo, {
       //   headers: {
       //     "Content-Type": "application/json",
       //   },

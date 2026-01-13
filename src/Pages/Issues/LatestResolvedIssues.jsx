@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import LoadingPage from "../Home/LoadingPage";
 import IssueCardSkeleton from "../Home/IssueCardSkeleton";
+import useAxios from "../../Hooks/useAxios";
 
 const LatestResolvedIssues = () => {
   const [issues, setIssues] = useState([]);
@@ -13,6 +14,7 @@ const LatestResolvedIssues = () => {
   );
 
   const axiosSecure = useAxiosSecure();
+  const axiosInstance = useAxios();
 
   useEffect(() => {
     const handleThemeChange = () => {
@@ -34,9 +36,8 @@ const LatestResolvedIssues = () => {
     const fetchIssues = async () => {
       try {
         setLoading(true);
-        const res = await axiosSecure.get("/issues");
-        const issuesArray = res.data?.issues;
-        setIssues(Array.isArray(issuesArray) ? issuesArray : []);
+        const res = await axiosInstance.get("/issues?status=Resolved&limit=8");
+        setIssues(res.data?.issues || []);
       } catch (err) {
         console.error("Failed to fetch issues:", err);
         setIssues([]);
@@ -44,13 +45,14 @@ const LatestResolvedIssues = () => {
         setLoading(false);
       }
     };
+
     fetchIssues();
-  }, [axiosSecure]);
+  }, []);
 
   const resolvedIssues = issues
     .filter((i) => i.status === "Resolved")
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, 6);
+    .slice(0, 8);
 
   if (loading) return <IssueCardSkeleton />;
 

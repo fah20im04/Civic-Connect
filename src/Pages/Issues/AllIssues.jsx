@@ -11,7 +11,7 @@ import LoadingPage from "../Home/LoadingPage";
 import IssueCardSkeleton from "../Home/IssueCardSkeleton";
 
 // Define pagination constant and set it up for server-side control
-const ITEMS_PER_PAGE = 9;
+const ITEMS_PER_PAGE = 12;
 
 const AllIssues = () => {
   const axiosSecure = useAxiosSecure();
